@@ -19,6 +19,8 @@ export type UserPortfolio = {
 
 export type UserInstrument = {
   id: string;
+  code?: string;
+  isin?: string;
   label: string;
   simModel: "risky" | "rate";
   ter: number;

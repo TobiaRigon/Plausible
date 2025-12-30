@@ -1,5 +1,7 @@
 {
   "id": "btce",
+  "code": "BTCE",
+  "isin": "GB00BJYDH287",
   "label": "Bitcoin ETP",
   "assetClass": "crypto_bitcoin",
   "instrumentType": "ETP",

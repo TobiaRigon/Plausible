@@ -1,111 +1,147 @@
 <template>
-  <section class="page">
+  <section class="page card shadow-sm p-4 d-flex flex-column gap-4">
     <h1>Settings</h1>
     <p class="info">
       Configurations are personal and saved locally in this browser.
       Use Export/Import for backup or transfer.
     </p>
 
-    <div class="panel">
+    <div class="panel card border-0 bg-light">
+      <div class="card-body">
       <h2>Export</h2>
       <p>Export profile, instruments, and parameters as JSON.</p>
-      <div class="actions">
-        <button type="button" @click="generateExport">Genera JSON</button>
-        <button type="button" @click="downloadExport" :disabled="!exportJson">
+      <div class="actions d-flex flex-wrap gap-2 align-items-center">
+        <button type="button" class="btn btn-primary" @click="generateExport">
+          Genera JSON
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-primary"
+          @click="downloadExport"
+          :disabled="!exportJson"
+        >
           Scarica
         </button>
       </div>
       <textarea
-        class="textarea"
+        class="form-control"
         readonly
         rows="8"
         :value="exportJson"
         placeholder="Press 'Generate JSON' to create the export."
       ></textarea>
+      </div>
     </div>
 
-    <div class="panel">
+    <div class="panel card border-0 bg-light">
+      <div class="card-body">
       <h2>Preferenze simulazione</h2>
       <p>Valori di default applicati alle nuove simulazioni.</p>
-      <label class="field">
+      <label class="field d-flex flex-column gap-2">
         <span>Annual inflation (%)</span>
         <input
           v-model.number="preferencesForm.inflationDefault"
           type="number"
           step="0.1"
+          class="form-control"
           @input="persistPrefs"
         />
       </label>
-      <label class="field">
+      <label class="field d-flex flex-column gap-2">
         <span>Number of simulations</span>
         <input
           v-model.number="preferencesForm.simulationsDefault"
           type="number"
           min="0"
           step="100"
+          class="form-control"
           @input="persistPrefs"
         />
       </label>
-      <label class="field">
+      <label class="field d-flex flex-column gap-2">
         <span>Horizon (years)</span>
         <input
           v-model.number="preferencesForm.horizonDefaultYears"
           type="number"
           min="0"
           step="1"
+          class="form-control"
           @input="persistPrefs"
         />
       </label>
-      <label class="field">
+      <label class="field d-flex flex-column gap-2">
         <span>Annual fee (%)</span>
         <input
           v-model.number="preferencesForm.feeDefault"
           type="number"
           step="0.01"
+          class="form-control"
           @input="persistPrefs"
         />
       </label>
-      <label class="field">
+      <label class="field d-flex flex-column gap-2">
         <span>Threshold (EUR)</span>
         <input
           v-model.number="preferencesForm.thresholdDefault"
           type="number"
           min="0"
           step="100"
+          class="form-control"
           @input="persistPrefs"
         />
       </label>
+      </div>
     </div>
 
-    <div class="panel">
+    <div class="panel card border-0 bg-light">
+      <div class="card-body">
       <h2>Import</h2>
       <p>Paste an exported JSON and import the profile.</p>
-      <div class="actions">
-        <label class="radio">
-          <input type="radio" value="merge" v-model="importMode" />
-          Merge
-        </label>
-        <label class="radio">
-          <input type="radio" value="replace" v-model="importMode" />
-          Replace
-        </label>
+      <div class="actions d-flex flex-wrap gap-3">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            id="import-merge"
+            value="merge"
+            v-model="importMode"
+          />
+          <label class="form-check-label" for="import-merge">Merge</label>
+        </div>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="radio"
+            id="import-replace"
+            value="replace"
+            v-model="importMode"
+          />
+          <label class="form-check-label" for="import-replace">Replace</label>
+        </div>
       </div>
       <textarea
         v-model="importJson"
-        class="textarea"
+        class="form-control"
         rows="8"
         placeholder="Incolla qui il JSON..."
       ></textarea>
-      <div class="actions">
-        <button type="button" @click="importData">Import</button>
+      <div class="actions d-flex flex-wrap gap-2 align-items-center">
+        <button type="button" class="btn btn-primary" @click="importData">
+          Import
+        </button>
         <span v-if="importMessage" class="message">{{ importMessage }}</span>
+      </div>
       </div>
     </div>
 
-    <div class="panel">
+    <div class="panel card border-0 bg-light">
+      <div class="card-body">
       <h2>Reset</h2>
       <p>Removes all locally saved configurations.</p>
-      <button type="button" class="danger" @click="resetData">Reset</button>
+      <button type="button" class="btn btn-danger" @click="resetData">
+        Reset
+      </button>
+      </div>
     </div>
   </section>
 </template>
@@ -310,40 +346,8 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 </script>
 
 <style scoped>
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-}
-
-.panel {
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px;
-  background: #f8fafc;
-}
-
 .info {
   color: #475569;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 12px 0;
-}
-
-.field select,
-.field input {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #cbd5f5;
-  font-size: 0.95rem;
 }
 
 .allocation-table {
@@ -366,54 +370,9 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
   border: 1px solid #cbd5f5;
 }
 
-.actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin: 12px 0;
-}
-
-.radio {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
 .summary {
   margin-top: 8px;
   font-weight: 600;
-}
-
-.textarea {
-  width: 100%;
-  border-radius: 8px;
-  border: 1px solid #cbd5f5;
-  padding: 10px;
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-  font-size: 0.9rem;
-}
-
-button {
-  border: none;
-  background: var(--primary);
-  color: #f8fafc;
-  padding: 8px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.secondary {
-  background: var(--primary-600);
-}
-
-.danger {
-  background: #b91c1c;
 }
 
 .message {

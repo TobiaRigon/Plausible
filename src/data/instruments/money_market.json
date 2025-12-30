@@ -1,5 +1,7 @@
 {
   "id": "money_market",
+  "code": "MMF",
+  "isin": "FR0010754200",
   "label": "Money Market Fund",
   "assetClass": "cash_like",
   "instrumentType": "ETF",

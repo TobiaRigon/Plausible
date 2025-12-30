@@ -1,6 +1,6 @@
 <template>
-  <section class="home">
-    <div class="hero">
+  <section class="d-flex flex-column gap-3">
+    <div class="card shadow-sm p-4 d-flex flex-column gap-3">
       <div>
         <h1>Planning beats forecasting.</h1>
         <p class="subtitle">
@@ -13,15 +13,17 @@
           looking for certainty, this is not the right tool.
         </p>
       </div>
-      <div class="actions">
-        <RouterLink class="primary" to="/dashboard">Go to dashboard</RouterLink>
-        <RouterLink class="secondary" to="/portfolio/new"
+      <div class="d-flex flex-wrap gap-2">
+        <RouterLink class="btn btn-primary" to="/dashboard"
+          >Go to dashboard</RouterLink
+        >
+        <RouterLink class="btn btn-outline-primary" to="/portfolio/new"
           >Create portfolio</RouterLink
         >
       </div>
     </div>
 
-    <div class="panel">
+    <div class="card shadow-sm p-3 panel">
       <h2>Core principles</h2>
       <ul>
         <li>Planning beats forecasting.</li>
@@ -31,7 +33,7 @@
       </ul>
     </div>
 
-    <div class="panel">
+    <div class="card shadow-sm p-3 panel">
       <h2>Local-first</h2>
       <p>
         Your configurations are personal and saved locally in this browser. Use
@@ -39,13 +41,15 @@
       </p>
     </div>
 
-    <div class="panel donate">
+    <div
+      class="card shadow-sm p-3 d-flex align-items-center justify-content-between flex-wrap gap-2"
+    >
       <p>
         If Plausible helped you reason about risk, support its continued
         development.
       </p>
       <a
-        class="donate-link"
+        class="btn btn-primary"
         href="https://buymeacoffee.com/tobiarigon"
         target="_blank"
         rel="noreferrer"
@@ -54,8 +58,10 @@
       </a>
     </div>
 
-    <p class="privacy-link">
-      <RouterLink to="/privacy">Privacy Policy</RouterLink>
+    <p class="privacy-link mb-0">
+      <RouterLink class="text-decoration-none fw-semibold" to="/privacy"
+        >Privacy Policy</RouterLink
+      >
     </p>
   </section>
 </template>
@@ -63,21 +69,6 @@
 <script setup lang="ts"></script>
 
 <style scoped>
-.home {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.hero {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
 
 .subtitle {
   color: #1f2937;
@@ -89,63 +80,12 @@
   max-width: 640px;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.primary,
-.secondary {
-  text-decoration: none;
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-weight: 600;
-}
-
-.primary {
-  background: var(--primary);
-  color: #f8fafc;
-}
-
-.secondary {
-  background: var(--primary-100);
-  color: #166534;
-}
-
-.panel {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-}
-
 .panel ul {
   margin: 12px 0 0 18px;
   padding: 0;
   color: #1f2937;
 }
-
-.donate {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.donate-link {
-  background: var(--primary);
-  color: #f8fafc;
-  text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-weight: 600;
-}
-
 .privacy-link a {
   color: #475569;
-  text-decoration: none;
-  font-weight: 600;
 }
 </style>

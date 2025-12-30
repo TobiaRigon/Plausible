@@ -1,57 +1,71 @@
 <template>
-  <section class="dashboard">
-    <div class="header">
+  <section class="dashboard d-flex flex-column gap-3">
+    <div class="header d-flex align-items-center justify-content-between gap-2">
       <div>
         <h1>My Portfolios</h1>
       </div>
-      <RouterLink class="primary" to="/portfolio/new">New portfolio</RouterLink>
+      <RouterLink class="btn btn-primary" to="/portfolio/new"
+        >New portfolio</RouterLink
+      >
     </div>
 
-    <div v-if="portfolios.length === 0" class="empty">
+    <div v-if="portfolios.length === 0" class="empty card shadow-sm p-4">
       <p>Dashboard is empty. No portfolios saved yet.</p>
       <p class="empty-note">
         Configurations are personal and saved locally in this browser.
       </p>
-      <RouterLink class="primary" to="/portfolio/new">New portfolio</RouterLink>
+      <RouterLink class="btn btn-primary" to="/portfolio/new"
+        >New portfolio</RouterLink
+      >
     </div>
 
     <div v-else class="grid">
       <article
         v-for="portfolio in portfolios"
         :key="portfolio.id"
-        class="card"
+        class="card portfolio-card shadow-sm"
         :style="{ '--card-accent': portfolio.color || '#e2e8f0' }"
       >
-        <header>
-          <h2>{{ portfolio.name }}</h2>
-          <p v-if="portfolio.notes" class="notes">{{ portfolio.notes }}</p>
-        </header>
-        <ul>
-          <li v-for="item in resolveItems(portfolio)" :key="item.label">
-            {{ item.label }} — {{ item.weight }}
-          </li>
-        </ul>
-        <div class="actions">
-          <button type="button" @click="goToSimulation(portfolio.id)">
-            Simulate
-          </button>
-          <button
-            type="button"
-            class="secondary"
-            @click="goToEdit(portfolio.id)"
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            class="secondary"
-            @click="duplicate(portfolio.id)"
-          >
-            Duplicate
-          </button>
-          <button type="button" class="danger" @click="remove(portfolio.id)">
-            Delete
-          </button>
+        <div class="card-body d-flex flex-column gap-2">
+          <header>
+            <h2 class="h5 mb-1">{{ portfolio.name }}</h2>
+            <p v-if="portfolio.notes" class="notes">{{ portfolio.notes }}</p>
+          </header>
+          <ul class="mb-0">
+            <li v-for="item in resolveItems(portfolio)" :key="item.label">
+              {{ item.label }} — {{ item.weight }}
+            </li>
+          </ul>
+          <div class="actions d-flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="goToSimulation(portfolio.id)"
+            >
+              Simulate
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-primary"
+              @click="goToEdit(portfolio.id)"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-primary"
+              @click="duplicate(portfolio.id)"
+            >
+              Duplicate
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              @click="remove(portfolio.id)"
+            >
+              Delete
+            </button>
+          </div>
         </div>
       </article>
     </div>
@@ -105,27 +119,13 @@ const remove = (id: string) => {
   gap: 16px;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .grid {
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
-.card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.portfolio-card {
   border-top: 4px solid var(--card-accent, #e2e8f0);
 }
 
@@ -134,44 +134,7 @@ const remove = (id: string) => {
   margin: 6px 0 0 0;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.primary {
-  background: var(--primary);
-  color: #f8fafc;
-  padding: 8px 14px;
-  border-radius: 999px;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-button {
-  border: none;
-  background: var(--primary);
-  color: #f8fafc;
-  padding: 8px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.secondary {
-  background: var(--primary-600);
-}
-
-.danger {
-  background: #b91c1c;
-}
-
 .empty {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
   gap: 12px;

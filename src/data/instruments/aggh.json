@@ -1,5 +1,7 @@
 {
   "id": "aggh",
+  "code": "AGGH",
+  "isin": "IE00BDBRDM35",
   "label": "AGGH",
   "assetClass": "bond_global_ig_eur_hedged",
   "instrumentType": "ETF",

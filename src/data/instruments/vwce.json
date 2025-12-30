@@ -1,5 +1,7 @@
 {
   "id": "vwce",
+  "code": "VWCE",
+  "isin": "IE00BK5BQT80",
   "label": "VWCE",
   "assetClass": "equity_global",
   "instrumentType": "ETF",

@@ -1,19 +1,21 @@
 <template>
   <div class="app-shell">
     <header class="app-header">
-      <nav class="navbar">
-        <RouterLink class="brand" to="/">
-          <img class="logo" :src="logoUrl" alt="Plausible logo" />
-          <span>Plausible</span>
-        </RouterLink>
-        <div class="nav-links">
-          <RouterLink to="/dashboard">Dashboard</RouterLink>
-          <RouterLink to="/settings">Settings</RouterLink>
+      <nav class="navbar navbar-expand-sm">
+        <div class="container-fluid">
+          <RouterLink class="navbar-brand brand" to="/">
+            <img class="logo" :src="logoUrl" alt="Plausible logo" />
+            <span>Plausible</span>
+          </RouterLink>
+          <div class="navbar-nav ms-auto nav-links">
+            <RouterLink class="nav-link" to="/dashboard">Dashboard</RouterLink>
+            <RouterLink class="nav-link" to="/settings">Settings</RouterLink>
+          </div>
         </div>
       </nav>
     </header>
 
-    <main class="app-main">
+    <main class="app-main container-lg">
       <RouterView />
     </main>
   </div>
@@ -37,13 +39,6 @@ const logoUrl = "/plausible-logo.png";
   border-bottom: 1px solid var(--border);
 }
 
-.navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 24px;
-}
-
 .brand {
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -60,11 +55,6 @@ const logoUrl = "/plausible-logo.png";
   object-fit: contain;
 }
 
-.nav-links {
-  display: flex;
-  gap: 16px;
-}
-
 .nav-links a {
   color: var(--primary);
   text-decoration: none;
@@ -77,17 +67,5 @@ const logoUrl = "/plausible-logo.png";
 
 .app-main {
   padding: 24px;
-}
-
-@media (max-width: 640px) {
-  .navbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .nav-links {
-    flex-wrap: wrap;
-  }
 }
 </style>

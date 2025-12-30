@@ -1,5 +1,7 @@
 {
   "id": "emerging_markets",
+  "code": "EMEQ",
+  "isin": "IE00BKM4GZ66",
   "label": "Emerging Markets Equity",
   "assetClass": "equity_emerging",
   "instrumentType": "ETF",

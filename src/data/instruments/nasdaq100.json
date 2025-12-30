@@ -1,5 +1,7 @@
 {
   "id": "nasdaq100",
+  "code": "NDX",
+  "isin": "IE00B53SZB19",
   "label": "NASDAQ-100 Equity",
   "assetClass": "equity_us_tech",
   "instrumentType": "ETF",

@@ -19,6 +19,17 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
+
+  --bs-primary: var(--primary);
+  --bs-primary-rgb: 150, 177, 142;
+  --bs-body-color: var(--text-700);
+  --bs-body-bg: #f5f7fb;
+  --bs-border-color: var(--border);
+  --bs-link-color: var(--primary);
+  --bs-link-hover-color: var(--primary-600);
+  --bs-border-radius: var(--radius-md);
+  --bs-border-radius-lg: var(--radius-lg);
+  --bs-border-radius-pill: var(--radius-pill);
 }
 
 * {
@@ -61,6 +72,75 @@ a {
   color: inherit;
 }
 
+.btn {
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+}
+
+.btn-primary {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: #f8fafc !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active {
+  background-color: var(--primary-600) !important;
+  border-color: var(--primary-600) !important;
+  color: #f8fafc !important;
+}
+
+.btn-outline-primary {
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-outline-primary.active {
+  color: #f8fafc !important;
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.btn-link {
+  color: var(--primary) !important;
+}
+
+.btn-link:hover,
+.btn-link:focus {
+  color: var(--primary-600) !important;
+}
+
+.tooltip-inner {
+  background-color: var(--primary);
+  color: #f8fafc;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
+}
+
+.bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before,
+.bs-tooltip-top .tooltip-arrow::before {
+  border-top-color: var(--primary);
+}
+
+.bs-tooltip-auto[data-popper-placement^="bottom"] .tooltip-arrow::before,
+.bs-tooltip-bottom .tooltip-arrow::before {
+  border-bottom-color: var(--primary);
+}
+
+.bs-tooltip-auto[data-popper-placement^="left"] .tooltip-arrow::before,
+.bs-tooltip-start .tooltip-arrow::before {
+  border-left-color: var(--primary);
+}
+
+.bs-tooltip-auto[data-popper-placement^="right"] .tooltip-arrow::before,
+.bs-tooltip-end .tooltip-arrow::before {
+  border-right-color: var(--primary);
+}
+
 button,
 input,
 select,
@@ -71,17 +151,6 @@ textarea {
 img {
   max-width: 100%;
   display: block;
-}
-
-.container {
-  width: min(1100px, 100%);
-  margin: 0 auto;
-}
-
-.card {
-  background: var(--surface);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
 }
 
 .fa-thumbtack{

@@ -1,5 +1,5 @@
 <template>
-  <section class="page">
+  <section class="page card shadow-sm p-4 d-flex flex-column gap-3">
     <h1>Privacy Policy</h1>
     <p>
       Plausible runs entirely in your browser. There is no backend, no user
@@ -38,16 +38,6 @@
 <script setup lang="ts"></script>
 
 <style scoped>
-.page {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
 a {
   color: var(--primary);
   font-weight: 600;

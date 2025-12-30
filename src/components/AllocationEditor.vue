@@ -1,6 +1,6 @@
 <template>
-  <div class="allocation-card">
-    <table class="allocation-table">
+  <div class="allocation-card card p-3">
+    <table class="allocation-table table table-sm">
       <thead>
         <tr>
           <th>Instrument</th>
@@ -17,6 +17,7 @@
               min="0"
               max="100"
               step="0.1"
+              class="form-control"
               @input="emitUpdate"
             />
           </td>
@@ -24,14 +25,22 @@
       </tbody>
     </table>
 
-    <div class="summary">
+    <div class="summary d-flex flex-wrap align-items-center gap-2">
       <span>Total: {{ totalWeight.toFixed(2) }}%</span>
       <span v-if="!isTotalValid" class="warning">Somma diversa da 100%</span>
     </div>
 
-    <div class="actions">
-      <button type="button" @click="normalizeWeights">Normalizza</button>
-      <button type="button" class="secondary" @click="resetToDefaults">Reset</button>
+    <div class="actions d-flex flex-wrap gap-2">
+      <button type="button" class="btn btn-primary" @click="normalizeWeights">
+        Normalizza
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        @click="resetToDefaults"
+      >
+        Reset
+      </button>
     </div>
   </div>
 </template>
@@ -114,63 +123,21 @@ const resetToDefaults = () => {
 </script>
 
 <style scoped>
-.allocation-card {
-  margin-top: 16px;
-  padding: 16px;
-  border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-}
-
 .allocation-table {
   width: 100%;
-  border-collapse: collapse;
 }
 
 .allocation-table th,
 .allocation-table td {
   text-align: left;
-  padding: 8px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.allocation-table input {
-  width: 100%;
-  max-width: 120px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  border: 1px solid #cbd5f5;
 }
 
 .summary {
   margin-top: 12px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
   font-weight: 600;
 }
 
 .warning {
   color: #b45309;
-}
-
-.actions {
-  margin-top: 12px;
-  display: flex;
-  gap: 12px;
-}
-
-button {
-  border: none;
-  background: var(--primary);
-  color: #f8fafc;
-  padding: 8px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.secondary {
-  background: var(--primary-600);
 }
 </style>

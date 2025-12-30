@@ -1,5 +1,7 @@
 {
   "id": "euro_gov_bonds",
+  "code": "EUGB",
+  "isin": "IE00B4WXJJ64",
   "label": "Euro Government Bonds",
   "assetClass": "bond_euro_government",
   "instrumentType": "ETF",

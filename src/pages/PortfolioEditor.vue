@@ -1,16 +1,16 @@
 <template>
-  <section class="page">
+  <section class="page card shadow-sm p-4 d-flex flex-column gap-3">
     <h1>{{ isEdit ? "Edit portfolio" : "Create portfolio" }}</h1>
     <p class="helper">
       Portfolios are stored locally in this browser. You can export or import them in Settings.
     </p>
 
-    <form class="form" @submit.prevent="savePortfolio">
-      <label class="field">
+    <form class="form d-flex flex-column gap-3" @submit.prevent="savePortfolio">
+      <label class="field d-flex flex-column gap-2">
         <span>Name</span>
-        <input v-model="name" type="text" required />
+        <input v-model="name" type="text" class="form-control" required />
       </label>
-      <div class="field">
+      <div class="field d-flex flex-column gap-2">
         <span>Card color</span>
         <div class="color-grid">
           <button
@@ -25,19 +25,19 @@
           ></button>
         </div>
       </div>
-      <label class="field">
+      <label class="field d-flex flex-column gap-2">
         <span>Notes (optional)</span>
-        <textarea v-model="notes" rows="3"></textarea>
+        <textarea v-model="notes" rows="3" class="form-control"></textarea>
       </label>
 
-      <div class="section-header">
+      <div class="section-header d-flex align-items-center justify-content-between gap-2">
         <h2>Instruments</h2>
-        <button type="button" class="secondary" @click="normalize">
+        <button type="button" class="btn btn-outline-primary" @click="normalize">
           Normalize
         </button>
       </div>
 
-      <table class="table">
+      <table class="table table-sm">
         <thead>
           <tr>
             <th>Instrument</th>
@@ -47,7 +47,13 @@
         </thead>
         <tbody>
           <tr v-for="item in items" :key="item.id">
-            <td>{{ resolveLabel(item) }}</td>
+            <td>
+              <span class="instrument-label">{{ resolveLabel(item) }}</span>
+              <span v-if="resolveCode(item)" class="code-badge">{{ resolveCode(item) }}</span>
+              <span v-if="resolveIsin(item)" class="meta secondary-line">
+                ISIN: {{ resolveIsin(item) }}
+              </span>
+            </td>
             <td>
               <input
                 v-model.number="item.weight"
@@ -55,10 +61,15 @@
                 min="0"
                 max="100"
                 step="0.1"
+                class="form-control"
               />
             </td>
             <td>
-              <button type="button" class="secondary" @click="removeItem(item.id)">
+              <button
+                type="button"
+                class="btn btn-outline-primary"
+                @click="removeItem(item.id)"
+              >
                 Remove
               </button>
             </td>
@@ -72,22 +83,27 @@
 
       <div class="catalog">
         <div class="catalog-controls">
-          <label class="field">
+          <label class="field d-flex flex-column gap-2">
             <span>Search instruments</span>
-            <input v-model="catalogSearch" type="text" placeholder="Type name or id" />
+            <input
+              v-model="catalogSearch"
+              type="text"
+              class="form-control"
+              placeholder="Type name, code, or ISIN"
+            />
           </label>
-          <label class="field">
+          <label class="field d-flex flex-column gap-2">
             <span>Type</span>
-            <select v-model="catalogTypeFilter">
+            <select v-model="catalogTypeFilter" class="form-select">
               <option value="all">All</option>
               <option v-for="item in catalogTypeFilters" :key="item" :value="item">
                 {{ item }}
               </option>
             </select>
           </label>
-          <label class="field">
+          <label class="field d-flex flex-column gap-2">
             <span>Exposure</span>
-            <select v-model="catalogExposureFilter">
+            <select v-model="catalogExposureFilter" class="form-select">
               <option value="all">All</option>
               <option v-for="item in catalogExposureFilters" :key="item" :value="item">
                 {{ item }}
@@ -96,9 +112,15 @@
           </label>
         </div>
         <div class="catalog-list">
-          <div v-for="instrument in filteredCatalog" :key="instrument.id" class="catalog-item">
+          <div
+            v-for="instrument in filteredCatalog"
+            :key="instrument.id"
+            class="catalog-item"
+          >
             <div>
               <strong>{{ instrument.label }}</strong>
+              <span class="code-badge">{{ instrument.code }}</span>
+              <span class="meta secondary-line">ISIN: {{ instrument.isin }}</span>
               <p class="meta">
                 {{ instrument.instrumentType || "Other" }} ·
                 {{ instrument.exposure || "Other" }} ·
@@ -107,7 +129,13 @@
                 TER {{ (instrument.ter * 100).toFixed(2) }}%
               </p>
             </div>
-            <button type="button" @click="addCatalogInstrument(instrument.id)">Add</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              @click="addCatalogInstrument(instrument.id)"
+            >
+              Add
+            </button>
           </div>
           <p v-if="filteredCatalog.length === 0" class="catalog-empty">
             No instruments match your search.
@@ -118,36 +146,55 @@
       <details class="custom">
         <summary>Create custom instrument</summary>
         <div class="custom-grid">
-          <label class="field">
+          <label class="field d-flex flex-column gap-2">
             <span>Name</span>
-            <input v-model="custom.label" type="text" />
+            <input v-model="custom.label" type="text" class="form-control" />
           </label>
-          <label class="field">
+          <label class="field d-flex flex-column gap-2">
             <span>SimModel</span>
-            <select v-model="custom.simModel">
+            <select v-model="custom.simModel" class="form-select">
               <option value="risky">risky</option>
               <option value="rate">rate</option>
             </select>
           </label>
-          <label class="field">
+          <label class="field d-flex flex-column gap-2">
             <span>TER</span>
-            <input v-model.number="custom.ter" type="number" step="0.0001" />
+            <input
+              v-model.number="custom.ter"
+              type="number"
+              step="0.0001"
+              class="form-control"
+            />
           </label>
-          <label class="field">
+          <label class="field d-flex flex-column gap-2">
             <span>Mu (10Y)</span>
-            <input v-model.number="custom.mu" type="number" step="0.001" />
+            <input
+              v-model.number="custom.mu"
+              type="number"
+              step="0.001"
+              class="form-control"
+            />
           </label>
-          <label class="field">
+          <label class="field d-flex flex-column gap-2">
             <span>Sigma (10Y)</span>
-            <input v-model.number="custom.sigma" type="number" step="0.001" />
+            <input
+              v-model.number="custom.sigma"
+              type="number"
+              step="0.001"
+              class="form-control"
+            />
           </label>
         </div>
-        <button type="button" @click="createCustomInstrument">Add custom</button>
+        <button type="button" class="btn btn-primary" @click="createCustomInstrument">
+          Add custom
+        </button>
       </details>
 
-      <div class="footer">
-        <button type="submit" class="primary">Save</button>
-        <button type="button" class="secondary" @click="goBack">Cancel</button>
+      <div class="footer d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-outline-primary" @click="goBack">
+          Cancel
+        </button>
       </div>
     </form>
   </section>
@@ -209,10 +256,13 @@ const filteredCatalog = computed(() => {
     if (typeFilter !== "all" && instrument.instrumentType !== typeFilter) return false;
     if (exposureFilter !== "all" && instrument.exposure !== exposureFilter) return false;
     if (!query) return true;
+    const isin = (instrument.isin ?? "").toUpperCase();
     return (
       instrument.label.toLowerCase().includes(query) ||
       instrument.id.toLowerCase().includes(query) ||
-      instrument.assetClass?.toLowerCase().includes(query)
+      (instrument.code ?? "").toLowerCase().includes(query) ||
+      instrument.assetClass?.toLowerCase().includes(query) ||
+      (query && isin.includes(query.toUpperCase()))
     );
   });
 });
@@ -220,14 +270,21 @@ const totalWeight = computed(() =>
   items.value.reduce((acc, item) => acc + (item.weight || 0), 0)
 );
 
-const resolveLabel = (item: { ref: UserPortfolioItem["instrumentRef"] }) => {
+const resolveInstrumentByRef = (item: { ref: UserPortfolioItem["instrumentRef"] }) => {
   if (item.ref.kind === "catalog") {
-    return catalogList.find((i) => i.id === item.ref.id)?.label ?? item.ref.id;
+    return catalogList.find((i) => i.id === item.ref.id);
   }
-  return (
-    listUserInstruments().find((i) => i.id === item.ref.id)?.label ?? item.ref.id
-  );
+  return listUserInstruments().find((i) => i.id === item.ref.id);
 };
+
+const resolveLabel = (item: { ref: UserPortfolioItem["instrumentRef"] }) =>
+  resolveInstrumentByRef(item)?.label ?? item.ref.id;
+
+const resolveCode = (item: { ref: UserPortfolioItem["instrumentRef"] }) =>
+  resolveInstrumentByRef(item)?.code ?? "";
+
+const resolveIsin = (item: { ref: UserPortfolioItem["instrumentRef"] }) =>
+  resolveInstrumentByRef(item)?.isin ?? "";
 
 const addCatalogInstrument = (instrumentId: string) => {
   if (!instrumentId) return;
@@ -307,55 +364,9 @@ const goBack = () => router.push("/dashboard");
 </script>
 
 <style scoped>
-.page {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-}
-
 .helper {
   color: #475569;
   margin: 6px 0 18px 0;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field input,
-.field textarea,
-.field select {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #cbd5f5;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table th,
-.table td {
-  text-align: left;
-  padding: 8px;
-  border-bottom: 1px solid #e2e8f0;
 }
 
 .summary {
@@ -364,13 +375,6 @@ const goBack = () => router.push("/dashboard");
 
 .summary.warn {
   color: #b45309;
-}
-
-.actions,
-.footer {
-  display: flex;
-  gap: 12px;
-  align-items: center;
 }
 
 .catalog {
@@ -410,29 +414,14 @@ const goBack = () => router.push("/dashboard");
   font-size: 0.85rem;
 }
 
+.secondary-line {
+  display: block;
+  margin-top: 4px;
+}
+
 .catalog-empty {
   margin: 0;
   color: #94a3b8;
-}
-
-.primary {
-  background: var(--primary);
-  color: #f8fafc;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.secondary {
-  background: var(--primary-600);
-  color: #f8fafc;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
 }
 
 .custom {

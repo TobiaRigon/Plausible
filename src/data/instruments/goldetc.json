@@ -1,5 +1,7 @@
 {
   "id": "gold",
+  "code": "GOLD",
+  "isin": "JE00B1VS3770",
   "label": "Physical Gold ETC",
   "assetClass": "commodity_gold",
   "instrumentType": "ETC",

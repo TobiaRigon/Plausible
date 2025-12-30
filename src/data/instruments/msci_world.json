@@ -1,5 +1,7 @@
 {
   "id": "msci_world",
+  "code": "WORLD",
+  "isin": "IE00B4L5Y983",
   "label": "MSCI World Equity",
   "assetClass": "equity_global_developed",
   "instrumentType": "ETF",

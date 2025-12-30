@@ -1,5 +1,5 @@
 <template>
-  <section class="page">
+  <section class="page card shadow-sm p-4 d-flex flex-column gap-3">
     <h1>Simulation</h1>
     <p>Portfolio: <strong>{{ portfolioLabel }}</strong></p>
     <p class="disclaimer">
@@ -8,10 +8,10 @@
       not the right tool.
     </p>
 
-    <div class="section-header">
+    <div class="section-header d-flex align-items-center gap-2">
       <button
         type="button"
-        class="toggle-button"
+        class="btn btn-outline-primary btn-sm toggle-button"
         @click="showSimulator = !showSimulator"
         aria-label="Show or hide simulator"
       >
@@ -20,25 +20,42 @@
       <h2>Simulator</h2>
     </div>
 
-    <form v-if="showSimulator" class="simulation-form" @submit.prevent="runSimulation">
-      <label class="field">
+    <form
+      v-if="showSimulator"
+      class="simulation-form row g-3"
+      @submit.prevent="runSimulation"
+    >
+      <label class="field col-12 col-md-6 col-lg-4">
         <span>Initial capital</span>
-        <input v-model.number="form.initialCapital" type="number" min="0" step="100" />
+        <input
+          v-model.number="form.initialCapital"
+          type="number"
+          min="0"
+          step="100"
+          class="form-control"
+        />
       </label>
-      <label class="field">
+      <label class="field col-12 col-md-6 col-lg-4">
         <span>Monthly contribution</span>
-        <input v-model.number="form.monthlyContribution" type="number" min="0" step="1" />
+        <input
+          v-model.number="form.monthlyContribution"
+          type="number"
+          min="0"
+          step="1"
+          class="form-control"
+        />
       </label>
-      <label class="field">
+      <label class="field col-12 col-md-6 col-lg-4">
         <span>Expected annual return (%)</span>
         <input
           v-model.number="form.annualReturn"
           type="number"
           step="0.1"
+          class="form-control"
           @blur="roundPercentInputs"
         />
       </label>
-      <label class="field">
+      <label class="field col-12 col-md-6 col-lg-4">
         <span>Annual volatility (%)</span>
         <input
           v-model.number="form.annualVolatility"
@@ -46,23 +63,41 @@
           min="0"
           max="100"
           step="0.1"
+          class="form-control"
           readonly
           @blur="roundPercentInputs"
         />
       </label>
-      <label class="field">
+      <label class="field col-12 col-md-6 col-lg-4">
         <span>Annual inflation (%)</span>
-        <input v-model.number="form.annualInflation" type="number" step="0.1" />
+        <input
+          v-model.number="form.annualInflation"
+          type="number"
+          step="0.1"
+          class="form-control"
+        />
       </label>
-      <label class="field">
+      <label class="field col-12 col-md-6 col-lg-4">
         <span>Annual fee (%)</span>
-        <input v-model.number="form.annualFee" type="number" step="0.01" />
+        <input
+          v-model.number="form.annualFee"
+          type="number"
+          step="0.01"
+          class="form-control"
+        />
       </label>
-      <label class="field">
+      <label class="field col-12 col-md-6 col-lg-4">
         <span>Horizon (years)</span>
-        <input v-model.number="form.years" type="number" min="1" max="60" step="1" />
+        <input
+          v-model.number="form.years"
+          type="number"
+          min="1"
+          max="60"
+          step="1"
+          class="form-control"
+        />
       </label>
-      <label class="field">
+      <label class="field col-12 col-md-6 col-lg-4">
         <span>Number of simulations</span>
         <input
           v-model.number="form.simulations"
@@ -70,11 +105,12 @@
           min="100"
           max="20000"
           step="100"
+          class="form-control"
         />
       </label>
-      <label class="field">
+      <label class="field col-12 col-md-6 col-lg-4">
         <span>Rebalancing</span>
-        <select v-model="form.rebalanceInterval">
+        <select v-model="form.rebalanceInterval" class="form-select">
           <option value="none">Never</option>
           <option value="6">Every 6 months</option>
           <option value="12">Every year</option>
@@ -82,27 +118,36 @@
           <option value="60">Every 5 years</option>
         </select>
       </label>
-      <label class="field">
+      <label class="field col-12 col-md-6 col-lg-4">
         <span>Window</span>
-        <select v-model="form.window" @change="updateDefaultsForWindow">
+        <select v-model="form.window" class="form-select" @change="updateDefaultsForWindow">
           <option v-for="window in windows" :key="window" :value="window">
             {{ window }}
           </option>
         </select>
       </label>
-      <label class="field">
+      <label class="field col-12 col-md-6 col-lg-4">
         <span class="field-label">
-          Threshold (EUR)
           <InfoTooltip
             text="Reference final threshold. Indicates the probability that the final portfolio value exceeds this amount at the end of the chosen horizon. It does not affect the simulation: it is only used to interpret risk."
-          />
+          >
+            <strong>Threshold (EUR)</strong>
+          </InfoTooltip>
         </span>
-        <input v-model.number="form.threshold" type="number" min="0" step="100" />
+        <input
+          v-model.number="form.threshold"
+          type="number"
+          min="0"
+          step="100"
+          class="form-control"
+        />
       </label>
 
-      <button class="simulate-test" type="submit">
+      <div class="col-12">
+        <button class="btn btn-primary simulate-test" type="submit">
         Run simulation
-      </button>
+        </button>
+      </div>
     </form>
 
     <p v-if="defaultAssumptionsMessage" class="info">
@@ -126,10 +171,10 @@
       Progress: {{ formatProgress(progress.completed, progress.total) }}
     </p>
 
-    <div v-if="currentPortfolio" class="section-header">
+    <div v-if="currentPortfolio" class="section-header d-flex align-items-center gap-2">
       <button
         type="button"
-        class="toggle-button"
+        class="btn btn-outline-primary btn-sm toggle-button"
         @click="showAllocation = !showAllocation"
         aria-label="Show or hide instrument allocation"
       >
@@ -140,15 +185,16 @@
     <AllocationEditor
       v-if="currentPortfolio && showAllocation"
       :portfolio-id="currentPortfolio.id"
-      :instruments="mergedInstruments"
+      :instruments="pinnedInstruments"
       :default-weights="defaultWeights"
       @update="handleSimulationAllocationUpdate"
+      @pin="handlePinnedUpdate"
     />
 
-    <div v-if="pinnedSimulation" class="section-header">
+    <div v-if="pinnedSimulation" class="section-header d-flex align-items-center gap-2">
       <button
         type="button"
-        class="toggle-button"
+        class="btn btn-outline-primary btn-sm toggle-button"
         @click="showDifferences = !showDifferences"
         aria-label="Show or hide settings differences"
       >
@@ -160,7 +206,7 @@
       <div class="settings-header">
         <button
           type="button"
-          class="icon-button"
+          class="btn btn-outline-primary btn-sm icon-button"
           aria-label="Remove pinned simulation"
           @click="clearPinnedSimulation"
         >
@@ -187,90 +233,157 @@
     <div v-if="summary && pinnedSimulation" class="comparison-split">
       <div class="sim-column">
         <div class="summary">
-          <h2 class="summary-title">Current simulation</h2>
-          <div class="summary-grid">
-            <div>
-              <h3>Nominal</h3>
-            <p class="percentile-row">
-                p10:
-                <span :class="comparisonClass(summary.nominal.p10, pinnedSimulation.summary.nominal.p10)">
-                  {{ formatCurrency(summary.nominal.p10) }}
-                </span>
-                <InfoTooltip
-                  text="Unfavorable scenario. Only 10% of simulations end below this value."
-                />
-            </p>
-            <p class="percentile-row">
-                p50:
-                <span :class="comparisonClass(summary.nominal.p50, pinnedSimulation.summary.nominal.p50)">
-                  {{ formatCurrency(summary.nominal.p50) }}
-                </span>
-                <InfoTooltip
-                  text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
-                />
-            </p>
-            <p class="percentile-row">
-                p90:
-                <span :class="comparisonClass(summary.nominal.p90, pinnedSimulation.summary.nominal.p90)">
-                  {{ formatCurrency(summary.nominal.p90) }}
-                </span>
-                <InfoTooltip
-                  text="Very favorable scenario. Only 10% of simulations end above this value."
-                />
-            </p>
-            </div>
-            <div>
-              <h3>Real</h3>
-            <p class="percentile-row">
-                p10:
-                <span :class="comparisonClass(summary.real.p10, pinnedSimulation.summary.real.p10)">
-                  {{ formatCurrency(summary.real.p10) }}
-                </span>
-                <InfoTooltip
-                  text="Unfavorable scenario. Only 10% of simulations end below this value."
-                />
-            </p>
-            <p class="percentile-row">
-                p50:
-                <span :class="comparisonClass(summary.real.p50, pinnedSimulation.summary.real.p50)">
-                  {{ formatCurrency(summary.real.p50) }}
-                </span>
-                <InfoTooltip
-                  text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
-                />
-            </p>
-            <p class="percentile-row">
-                p90:
-                <span :class="comparisonClass(summary.real.p90, pinnedSimulation.summary.real.p90)">
-                  {{ formatCurrency(summary.real.p90) }}
-                </span>
-                <InfoTooltip
-                  text="Very favorable scenario. Only 10% of simulations end above this value."
-                />
-            </p>
-            </div>
-          <div>
-            <h3>Threshold probability</h3>
-            <p>
-              <span
-                :class="
-                  comparisonClass(
-                    summary.probabilityAboveThreshold,
-                    pinnedSimulation.summary.probabilityAboveThreshold
-                  )
-                "
-              >
-                {{ formatPercent(summary.probabilityAboveThreshold) }}
-              </span>
-            </p>
+          <div class="section-header d-flex align-items-center gap-2">
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-sm toggle-button"
+              @click="showCurrentSimulation = !showCurrentSimulation"
+              aria-label="Show or hide current simulation"
+            >
+              <span :class="['chevron', { open: showCurrentSimulation }]">▶</span>
+            </button>
+            <h2 class="summary-title mb-0">Current simulation</h2>
           </div>
+          <div v-if="showCurrentSimulation">
+            <div class="summary-grid">
+              <div>
+                <h3>Nominal</h3>
+                <p class="percentile-row">
+                  <InfoTooltip
+                    text="Unfavorable scenario. Only 10% of simulations end below this value."
+                  >
+                    <strong>p10</strong>
+                  </InfoTooltip>
+                  :
+                  <span
+                    :class="
+                      comparisonClass(
+                        summary.nominal.p10,
+                        pinnedSimulation.summary.nominal.p10
+                      )
+                    "
+                  >
+                    {{ formatCurrency(summary.nominal.p10) }}
+                  </span>
+                </p>
+                <p class="percentile-row">
+                  <InfoTooltip
+                    text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
+                  >
+                    <strong>p50</strong>
+                  </InfoTooltip>
+                  :
+                  <span
+                    :class="
+                      comparisonClass(
+                        summary.nominal.p50,
+                        pinnedSimulation.summary.nominal.p50
+                      )
+                    "
+                  >
+                    {{ formatCurrency(summary.nominal.p50) }}
+                  </span>
+                </p>
+                <p class="percentile-row">
+                  <InfoTooltip
+                    text="Very favorable scenario. Only 10% of simulations end above this value."
+                  >
+                    <strong>p90</strong>
+                  </InfoTooltip>
+                  :
+                  <span
+                    :class="
+                      comparisonClass(
+                        summary.nominal.p90,
+                        pinnedSimulation.summary.nominal.p90
+                      )
+                    "
+                  >
+                    {{ formatCurrency(summary.nominal.p90) }}
+                  </span>
+                </p>
+              </div>
+              <div>
+                <h3>Real</h3>
+                <p class="percentile-row">
+                  <InfoTooltip
+                    text="Unfavorable scenario. Only 10% of simulations end below this value."
+                  >
+                    <strong>p10</strong>
+                  </InfoTooltip>
+                  :
+                  <span
+                    :class="
+                      comparisonClass(summary.real.p10, pinnedSimulation.summary.real.p10)
+                    "
+                  >
+                    {{ formatCurrency(summary.real.p10) }}
+                  </span>
+                </p>
+                <p class="percentile-row">
+                  <InfoTooltip
+                    text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
+                  >
+                    <strong>p50</strong>
+                  </InfoTooltip>
+                  :
+                  <span
+                    :class="
+                      comparisonClass(summary.real.p50, pinnedSimulation.summary.real.p50)
+                    "
+                  >
+                    {{ formatCurrency(summary.real.p50) }}
+                  </span>
+                </p>
+                <p class="percentile-row">
+                  <InfoTooltip
+                    text="Very favorable scenario. Only 10% of simulations end above this value."
+                  >
+                    <strong>p90</strong>
+                  </InfoTooltip>
+                  :
+                  <span
+                    :class="
+                      comparisonClass(summary.real.p90, pinnedSimulation.summary.real.p90)
+                    "
+                  >
+                    {{ formatCurrency(summary.real.p90) }}
+                  </span>
+                </p>
+              </div>
+              <div>
+                <h3>Threshold probability</h3>
+                <p>
+                  <span
+                    :class="
+                      comparisonClass(
+                        summary.probabilityAboveThreshold,
+                        pinnedSimulation.summary.probabilityAboveThreshold
+                      )
+                    "
+                  >
+                    {{ formatPercent(summary.probabilityAboveThreshold) }}
+                  </span>
+                </p>
+              </div>
+            </div>
+            <p class="timing">Compute time: {{ computeTimeMs }} ms</p>
           </div>
-          <p class="timing">Compute time: {{ computeTimeMs }} ms</p>
         </div>
         <div class="charts">
           <div>
-            <h2>Percentile trend</h2>
-            <PercentileChart :series="percentileSeries" />
+            <div class="chart-header">
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm toggle-button"
+                @click="showPercentileTrend = !showPercentileTrend"
+                aria-label="Show or hide percentile trend"
+              >
+                <span :class="['chevron', { open: showPercentileTrend }]">▶</span>
+              </button>
+              <h2>Percentile trend</h2>
+            </div>
+            <PercentileChart v-if="showPercentileTrend" :series="percentileSeries" />
           </div>
           <div>
             <h2>Final distribution</h2>
@@ -286,43 +399,55 @@
             <div>
               <h3>Nominal</h3>
               <p class="percentile-row">
-                p10: {{ formatCurrency(pinnedSimulation.summary.nominal.p10) }}
                 <InfoTooltip
                   text="Unfavorable scenario. Only 10% of simulations end below this value."
-                />
+                >
+                  <strong>p10</strong>
+                </InfoTooltip>
+                : {{ formatCurrency(pinnedSimulation.summary.nominal.p10) }}
               </p>
               <p class="percentile-row">
-                p50: {{ formatCurrency(pinnedSimulation.summary.nominal.p50) }}
                 <InfoTooltip
                   text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
-                />
+                >
+                  <strong>p50</strong>
+                </InfoTooltip>
+                : {{ formatCurrency(pinnedSimulation.summary.nominal.p50) }}
               </p>
               <p class="percentile-row">
-                p90: {{ formatCurrency(pinnedSimulation.summary.nominal.p90) }}
                 <InfoTooltip
                   text="Very favorable scenario. Only 10% of simulations end above this value."
-                />
+                >
+                  <strong>p90</strong>
+                </InfoTooltip>
+                : {{ formatCurrency(pinnedSimulation.summary.nominal.p90) }}
               </p>
             </div>
             <div>
               <h3>Real</h3>
               <p class="percentile-row">
-                p10: {{ formatCurrency(pinnedSimulation.summary.real.p10) }}
                 <InfoTooltip
                   text="Unfavorable scenario. Only 10% of simulations end below this value."
-                />
+                >
+                  <strong>p10</strong>
+                </InfoTooltip>
+                : {{ formatCurrency(pinnedSimulation.summary.real.p10) }}
               </p>
               <p class="percentile-row">
-                p50: {{ formatCurrency(pinnedSimulation.summary.real.p50) }}
                 <InfoTooltip
                   text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
-                />
+                >
+                  <strong>p50</strong>
+                </InfoTooltip>
+                : {{ formatCurrency(pinnedSimulation.summary.real.p50) }}
               </p>
               <p class="percentile-row">
-                p90: {{ formatCurrency(pinnedSimulation.summary.real.p90) }}
                 <InfoTooltip
                   text="Very favorable scenario. Only 10% of simulations end above this value."
-                />
+                >
+                  <strong>p90</strong>
+                </InfoTooltip>
+                : {{ formatCurrency(pinnedSimulation.summary.real.p90) }}
               </p>
             </div>
             <div>
@@ -336,8 +461,21 @@
         </div>
         <div class="charts">
           <div>
-            <h2>Percentile trend</h2>
-            <PercentileChart :series="pinnedSimulation.percentileSeries" />
+            <div class="chart-header">
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-sm toggle-button"
+                @click="showPercentileTrend = !showPercentileTrend"
+                aria-label="Show or hide percentile trend"
+              >
+                <span :class="['chevron', { open: showPercentileTrend }]">▶</span>
+              </button>
+              <h2>Percentile trend</h2>
+            </div>
+            <PercentileChart
+              v-if="showPercentileTrend"
+              :series="pinnedSimulation.percentileSeries"
+            />
           </div>
           <div>
             <h2>Final distribution</h2>
@@ -354,7 +492,7 @@
       <div class="summary-actions">
         <button
           type="button"
-          class="icon-button"
+          class="btn btn-outline-primary btn-sm icon-button"
           aria-label="Pin current simulation"
           @click="pinCurrentSimulation"
         >
@@ -366,43 +504,55 @@
         <div>
           <h3>Nominal</h3>
           <p class="percentile-row">
-            p10: {{ formatCurrency(summary.nominal.p10) }}
             <InfoTooltip
               text="Unfavorable scenario. Only 10% of simulations end below this value."
-            />
+            >
+              <strong>p10</strong>
+            </InfoTooltip>
+            : {{ formatCurrency(summary.nominal.p10) }}
           </p>
           <p class="percentile-row">
-            p50: {{ formatCurrency(summary.nominal.p50) }}
             <InfoTooltip
               text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
-            />
+            >
+              <strong>p50</strong>
+            </InfoTooltip>
+            : {{ formatCurrency(summary.nominal.p50) }}
           </p>
           <p class="percentile-row">
-            p90: {{ formatCurrency(summary.nominal.p90) }}
             <InfoTooltip
               text="Very favorable scenario. Only 10% of simulations end above this value."
-            />
+            >
+              <strong>p90</strong>
+            </InfoTooltip>
+            : {{ formatCurrency(summary.nominal.p90) }}
           </p>
         </div>
         <div>
           <h3>Real</h3>
           <p class="percentile-row">
-            p10: {{ formatCurrency(summary.real.p10) }}
             <InfoTooltip
               text="Unfavorable scenario. Only 10% of simulations end below this value."
-            />
+            >
+              <strong>p10</strong>
+            </InfoTooltip>
+            : {{ formatCurrency(summary.real.p10) }}
           </p>
           <p class="percentile-row">
-            p50: {{ formatCurrency(summary.real.p50) }}
             <InfoTooltip
               text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
-            />
+            >
+              <strong>p50</strong>
+            </InfoTooltip>
+            : {{ formatCurrency(summary.real.p50) }}
           </p>
           <p class="percentile-row">
-            p90: {{ formatCurrency(summary.real.p90) }}
             <InfoTooltip
               text="Very favorable scenario. Only 10% of simulations end above this value."
-            />
+            >
+              <strong>p90</strong>
+            </InfoTooltip>
+            : {{ formatCurrency(summary.real.p90) }}
           </p>
         </div>
         <div>
@@ -415,12 +565,68 @@
 
     <div v-if="summary && !pinnedSimulation" class="charts">
       <div>
-        <h2>Percentile trend</h2>
-        <PercentileChart :series="percentileSeries" />
+        <div class="chart-header">
+          <button
+            type="button"
+            class="btn btn-outline-primary btn-sm toggle-button"
+            @click="showPercentileTrend = !showPercentileTrend"
+            aria-label="Show or hide percentile trend"
+          >
+            <span :class="['chevron', { open: showPercentileTrend }]">▶</span>
+          </button>
+          <h2>Percentile trend</h2>
+        </div>
+        <PercentileChart v-if="showPercentileTrend" :series="percentileSeries" />
       </div>
       <div>
         <h2>Final distribution</h2>
         <DistributionChart :distribution="finalDistribution" />
+      </div>
+    </div>
+
+    <div v-if="summary" class="info-panel">
+      <div class="chart-header">
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-sm toggle-button"
+          @click="toggleInfoPanel"
+          aria-label="Show or hide What you're seeing"
+        >
+          <span :class="['chevron', { open: showInfoPanel }]">▶</span>
+        </button>
+        <h2>What you're seeing</h2>
+      </div>
+      <div v-if="showInfoPanel" class="info-body">
+        <p>
+          Monte Carlo generates many plausible paths. It is not a forecast and does not
+          predict returns.
+        </p>
+        <p>
+          <InfoTooltip text="A percentile is a statistical cutoff. p10 means 10% of outcomes are below it.">
+            <span class="term">Percentiles</span>
+          </InfoTooltip>
+          (p10 / p50 / p90) show unfavorable, typical, and favorable outcomes.
+        </p>
+        <p>
+          <InfoTooltip text="Nominal values are not adjusted for inflation.">
+            <span class="term">Nominal</span>
+          </InfoTooltip>
+          vs
+          <InfoTooltip text="Real values are adjusted for inflation to reflect purchasing power.">
+            <span class="term">Real</span>
+          </InfoTooltip>
+          shows the difference between raw and inflation-adjusted results.
+        </p>
+        <p>
+          <InfoTooltip text="Threshold is a target final value used to compute a probability.">
+            <span class="term">Threshold</span>
+          </InfoTooltip>
+          indicates the probability of reaching a target value by the chosen horizon.
+        </p>
+        <p>
+          10Y / 3Y labels indicate the historical window used for mu and sigma
+          inputs (e.g., 10-year or 3-year estimates).
+        </p>
       </div>
     </div>
   </section>
@@ -463,6 +669,10 @@ const form = ref({
 const showSimulator = ref(true);
 const showAllocation = ref(true);
 const showDifferences = ref(true);
+const showInfoPanel = ref(true);
+const showCurrentSimulation = ref(true);
+const showPercentileTrend = ref(true);
+const pinnedInstrumentIds = ref<string[]>([]);
 
 type PinnedSimulation = {
   summary: MonteCarloSummary;
@@ -513,6 +723,12 @@ const simulationAllocation = ref<Record<string, number>>({});
 const portfolioLabel = computed(
   () => currentPortfolio.value?.name ?? String(portfolioId.value)
 );
+const pinnedStorageKey = computed(
+  () => `sim_pinned_instruments_v1_${String(portfolioId.value || "default")}`
+);
+const infoPanelKey = computed(
+  () => `sim_info_panel_v1_${String(portfolioId.value || "default")}`
+);
 
 const mergedInstruments = computed(() => {
   const portfolio = currentPortfolio.value;
@@ -532,6 +748,8 @@ const mergedInstruments = computed(() => {
       const overrideWeight = simulationAllocation.value[ref.id];
       return {
         id: ref.id,
+        code: instrument.code ?? instrument.label ?? ref.id,
+        isin: instrument.isin ?? "",
         label: instrument.label,
         simModel: instrument.simModel,
         targetWeight:
@@ -539,9 +757,22 @@ const mergedInstruments = computed(() => {
       };
     })
     .filter(
-      (value): value is { id: string; label: string; simModel: "risky" | "rate"; targetWeight: number } =>
-        value !== null
+      (value): value is {
+        id: string;
+        code: string;
+        isin: string;
+        label: string;
+        simModel: "risky" | "rate";
+        targetWeight: number;
+      } => value !== null
     );
+});
+
+const pinnedInstruments = computed(() => {
+  const pinnedSet = new Set(pinnedInstrumentIds.value);
+  const pinned = mergedInstruments.value.filter((item) => pinnedSet.has(item.id));
+  const rest = mergedInstruments.value.filter((item) => !pinnedSet.has(item.id));
+  return [...pinned, ...rest];
 });
 
 const defaultWeights = computed(() => {
@@ -766,6 +997,34 @@ const loadPinnedSimulation = () => {
   }
 };
 
+const loadInfoPanelState = () => {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(infoPanelKey.value) ?? "{}");
+    if (stored && typeof stored === "object" && typeof stored.expanded === "boolean") {
+      showInfoPanel.value = stored.expanded;
+    }
+  } catch {
+    showInfoPanel.value = true;
+  }
+};
+
+const toggleInfoPanel = () => {
+  showInfoPanel.value = !showInfoPanel.value;
+  window.localStorage.setItem(
+    infoPanelKey.value,
+    JSON.stringify({ expanded: showInfoPanel.value })
+  );
+};
+
+const loadPinnedInstrumentIds = () => {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(pinnedStorageKey.value) ?? "[]");
+    pinnedInstrumentIds.value = Array.isArray(stored) ? stored : [];
+  } catch {
+    pinnedInstrumentIds.value = [];
+  }
+};
+
 const pinCurrentSimulation = () => {
   if (!summary.value) return;
   const payload: PinnedSimulation = {
@@ -909,6 +1168,8 @@ onMounted(() => {
   form.value.rebalanceInterval = "none";
   applyDefaultsIfEmpty();
   loadPinnedSimulation();
+  loadInfoPanelState();
+  loadPinnedInstrumentIds();
 });
 
 watch(
@@ -916,6 +1177,8 @@ watch(
   () => {
     form.value.rebalanceInterval = "none";
     applyDefaultsIfEmpty();
+    loadInfoPanelState();
+    loadPinnedInstrumentIds();
   }
 );
 
@@ -948,6 +1211,10 @@ const handleSimulationAllocationUpdate = (updated: Record<string, number>) => {
   roundPercentInputs();
 };
 
+const handlePinnedUpdate = (ids: string[]) => {
+  pinnedInstrumentIds.value = ids;
+};
+
 
 
 const roundPercentInputs = () => {
@@ -963,13 +1230,6 @@ const roundTo = (value: number, digits: number): number => {
 </script>
 
 <style scoped>
-.page {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-}
-
 .disclaimer {
   margin-top: 6px;
   color: #475569;
@@ -984,12 +1244,7 @@ const roundTo = (value: number, digits: number): number => {
 }
 
 .toggle-button {
-  border: none;
-  background: transparent;
   color: var(--primary);
-  padding: 0;
-  cursor: pointer;
-  font-weight: 600;
 }
 
 .chevron {
@@ -1004,22 +1259,10 @@ const roundTo = (value: number, digits: number): number => {
 
 .simulate-test {
   margin-top: 12px;
-  border: none;
-  background: var(--primary);
-  color: #f8fafc;
-  padding: 10px 16px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 600;
 }
 
 .icon-button {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 1rem;
   line-height: 1;
-  padding: 4px 6px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1055,9 +1298,6 @@ const roundTo = (value: number, digits: number): number => {
 
 .simulation-form {
   margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px 16px;
 }
 
 .field {
@@ -1073,19 +1313,6 @@ const roundTo = (value: number, digits: number): number => {
   align-items: center;
 }
 
-.field input {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #cbd5f5;
-  font-size: 0.95rem;
-}
-
-.field select {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #cbd5f5;
-  font-size: 0.95rem;
-}
 
 .summary {
   margin-top: 24px;
@@ -1110,16 +1337,6 @@ const roundTo = (value: number, digits: number): number => {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-}
-
-.secondary-button {
-  border: none;
-  background: var(--primary-600);
-  color: #f8fafc;
-  padding: 8px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 600;
 }
 
 .percentile-row {
@@ -1160,8 +1377,50 @@ const roundTo = (value: number, digits: number): number => {
 
 .charts {
   margin-top: 24px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
+}
+
+.chart-panel {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 16px 16px 16px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.info-panel {
+  margin-top: 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-body {
+  color: var(--text-700);
+  font-size: 0.95rem;
+}
+
+.term {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--text-900);
 }
 
 .comparison-split {

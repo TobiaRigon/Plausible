@@ -7,6 +7,8 @@ export type PortfolioConfig = {
 };
 
 export type InstrumentConfig = {
+  isin: string;
+  code?: string;
   label: string;
   assetClass: string;
   instrumentType?: string;

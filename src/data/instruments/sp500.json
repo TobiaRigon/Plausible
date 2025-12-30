@@ -1,5 +1,7 @@
 {
   "id": "sp500",
+  "code": "SPX",
+  "isin": "IE00BFMXXD54",
   "label": "S&P 500 Equity",
   "assetClass": "equity_us",
   "instrumentType": "ETF",

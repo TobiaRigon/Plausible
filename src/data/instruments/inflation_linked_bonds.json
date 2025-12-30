@@ -1,5 +1,7 @@
 {
   "id": "inflation_linked_bonds",
+  "code": "ILGB",
+  "isin": "IE00B3B8PX14",
   "label": "Global Inflation-Linked Bonds",
   "assetClass": "bond_global_inflation_linked",
   "instrumentType": "ETF",

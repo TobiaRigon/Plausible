@@ -1,5 +1,7 @@
 {
   "id": "xeon",
+  "code": "XEON",
+  "isin": "LU0290358497",
   "label": "XEON",
   "assetClass": "cash_like",
   "instrumentType": "ETF",
