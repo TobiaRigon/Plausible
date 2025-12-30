@@ -84,6 +84,10 @@ img {
   box-shadow: var(--shadow-md);
 }
 
+.fa-thumbtack{
+  color: var(--primary-600);
+}
+
 @media (max-width: 720px) {
   body {
     font-size: 15px;
