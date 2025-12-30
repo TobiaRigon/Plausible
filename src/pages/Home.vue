@@ -36,6 +36,19 @@
         Use Export/Import in Settings for backup or transfer.
       </p>
     </div>
+
+    <div class="panel donate">
+      <p>
+        If Plausible helped you reason about risk, support its continued development.
+      </p>
+      <a class="donate-link" href="https://example.com/donate" target="_blank" rel="noreferrer">
+        Support Plausible
+      </a>
+    </div>
+
+    <p class="privacy-link">
+      <RouterLink to="/privacy">Privacy Policy</RouterLink>
+    </p>
   </section>
 </template>
 
@@ -103,5 +116,28 @@
   margin: 12px 0 0 18px;
   padding: 0;
   color: #334155;
+}
+
+.donate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.donate-link {
+  background: #0f172a;
+  color: #f8fafc;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.privacy-link a {
+  color: #475569;
+  text-decoration: none;
+  font-weight: 600;
 }
 </style>
