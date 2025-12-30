@@ -4,18 +4,20 @@
       <div>
         <h1>Planning beats forecasting.</h1>
         <p class="subtitle">
-          Explore plausible ranges of outcomes based on explicit assumptions.
-          No predictions. No hype.
+          Explore plausible ranges of outcomes based on explicit assumptions. No
+          predictions. No hype.
         </p>
         <p class="disclaimer">
-          This tool does not predict returns. It explores plausible outcomes based on
-          your assumptions. Markets may behave differently. If you are looking for
-          certainty, this is not the right tool.
+          This tool does not predict returns. It explores plausible outcomes
+          based on your assumptions. Markets may behave differently. If you are
+          looking for certainty, this is not the right tool.
         </p>
       </div>
       <div class="actions">
         <RouterLink class="primary" to="/dashboard">Go to dashboard</RouterLink>
-        <RouterLink class="secondary" to="/portfolio/new">Create portfolio</RouterLink>
+        <RouterLink class="secondary" to="/portfolio/new"
+          >Create portfolio</RouterLink
+        >
       </div>
     </div>
 
@@ -32,16 +34,22 @@
     <div class="panel">
       <h2>Local-first</h2>
       <p>
-        Your configurations are personal and saved locally in this browser.
-        Use Export/Import in Settings for backup or transfer.
+        Your configurations are personal and saved locally in this browser. Use
+        Export/Import in Settings for backup or transfer.
       </p>
     </div>
 
     <div class="panel donate">
       <p>
-        If Plausible helped you reason about risk, support its continued development.
+        If Plausible helped you reason about risk, support its continued
+        development.
       </p>
-      <a class="donate-link" href="https://example.com/donate" target="_blank" rel="noreferrer">
+      <a
+        class="donate-link"
+        href="https://buymeacoffee.com/tobiarigon"
+        target="_blank"
+        rel="noreferrer"
+      >
         Support Plausible
       </a>
     </div>
@@ -72,7 +80,7 @@
 }
 
 .subtitle {
-  color: #334155;
+  color: #1f2937;
   margin: 8px 0 0 0;
 }
 
@@ -96,13 +104,13 @@
 }
 
 .primary {
-  background: #0f172a;
+  background: var(--primary);
   color: #f8fafc;
 }
 
 .secondary {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: var(--primary-100);
+  color: #166534;
 }
 
 .panel {
@@ -115,7 +123,7 @@
 .panel ul {
   margin: 12px 0 0 18px;
   padding: 0;
-  color: #334155;
+  color: #1f2937;
 }
 
 .donate {
@@ -127,7 +135,7 @@
 }
 
 .donate-link {
-  background: #0f172a;
+  background: var(--primary);
   color: #f8fafc;
   text-decoration: none;
   padding: 8px 16px;

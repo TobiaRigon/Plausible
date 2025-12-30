@@ -141,7 +141,7 @@ const remove = (id: string) => {
 }
 
 .primary {
-  background: #0f172a;
+  background: var(--primary);
   color: #f8fafc;
   padding: 8px 14px;
   border-radius: 999px;
@@ -151,7 +151,7 @@ const remove = (id: string) => {
 
 button {
   border: none;
-  background: #0f172a;
+  background: var(--primary);
   color: #f8fafc;
   padding: 8px 14px;
   border-radius: 999px;
@@ -160,7 +160,7 @@ button {
 }
 
 .secondary {
-  background: #334155;
+  background: var(--primary-600);
 }
 
 .danger {

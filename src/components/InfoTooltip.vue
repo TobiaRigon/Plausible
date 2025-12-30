@@ -50,7 +50,7 @@ const toggle = () => {
 .info-button {
   border: none;
   background: transparent;
-  color: #0f172a;
+  color: var(--primary);
   cursor: pointer;
   font-size: 0.9rem;
   line-height: 1;
@@ -63,7 +63,7 @@ const toggle = () => {
   left: 0;
   top: 24px;
   z-index: 10;
-  background: #0f172a;
+  background: var(--primary);
   color: #f8fafc;
   padding: 10px 12px;
   border-radius: 8px;

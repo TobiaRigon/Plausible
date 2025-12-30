@@ -986,7 +986,7 @@ const roundTo = (value: number, digits: number): number => {
 .toggle-button {
   border: none;
   background: transparent;
-  color: #0f172a;
+  color: var(--primary);
   padding: 0;
   cursor: pointer;
   font-weight: 600;
@@ -1005,7 +1005,7 @@ const roundTo = (value: number, digits: number): number => {
 .simulate-test {
   margin-top: 12px;
   border: none;
-  background: #0f172a;
+  background: var(--primary);
   color: #f8fafc;
   padding: 10px 16px;
   border-radius: 999px;
@@ -1050,7 +1050,7 @@ const roundTo = (value: number, digits: number): number => {
 
 .icon-label {
   font-size: 0.9rem;
-  color: #334155;
+  color: #1f2937;
 }
 
 .simulation-form {
@@ -1065,7 +1065,7 @@ const roundTo = (value: number, digits: number): number => {
   flex-direction: column;
   gap: 6px;
   font-size: 0.9rem;
-  color: #334155;
+  color: #1f2937;
 }
 
 .field-label {
@@ -1114,7 +1114,7 @@ const roundTo = (value: number, digits: number): number => {
 
 .secondary-button {
   border: none;
-  background: #334155;
+  background: var(--primary-600);
   color: #f8fafc;
   padding: 8px 14px;
   border-radius: 999px;
@@ -1154,7 +1154,7 @@ const roundTo = (value: number, digits: number): number => {
 
 .progress {
   margin-top: 8px;
-  color: #0f172a;
+  color: var(--primary);
   font-weight: 600;
 }
 
@@ -1197,7 +1197,7 @@ const roundTo = (value: number, digits: number): number => {
 }
 
 .better {
-  color: #15803d;
+  color: var(--primary-600);
   font-weight: 700;
 }
 

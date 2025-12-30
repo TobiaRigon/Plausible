@@ -2,7 +2,10 @@
   <div class="app-shell">
     <header class="app-header">
       <nav class="navbar">
-        <RouterLink class="brand" to="/">Plausible</RouterLink>
+        <RouterLink class="brand" to="/">
+          <img class="logo" :src="logoUrl" alt="Plausible logo" />
+          <span>Plausible</span>
+        </RouterLink>
         <div class="nav-links">
           <RouterLink to="/dashboard">Dashboard</RouterLink>
           <RouterLink to="/settings">Settings</RouterLink>
@@ -17,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import logoUrl from "@/assets/plausible-logo.png";
 </script>
 
 <style scoped>
@@ -28,8 +32,9 @@
 }
 
 .app-header {
-  background: #0f172a;
-  color: #f8fafc;
+  background: #ffffff;
+  color: var(--primary);
+  border-bottom: 1px solid var(--border);
 }
 
 .navbar {
@@ -42,8 +47,17 @@
 .brand {
   font-weight: 700;
   letter-spacing: 0.5px;
-  color: #f8fafc;
+  color: var(--primary);
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .nav-links {
@@ -52,13 +66,13 @@
 }
 
 .nav-links a {
-  color: #e2e8f0;
+  color: var(--primary);
   text-decoration: none;
   font-weight: 500;
 }
 
 .nav-links a.router-link-active {
-  color: #38bdf8;
+  color: var(--primary-600);
 }
 
 .app-main {

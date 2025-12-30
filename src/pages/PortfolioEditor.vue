@@ -416,7 +416,7 @@ const goBack = () => router.push("/dashboard");
 }
 
 .primary {
-  background: #0f172a;
+  background: var(--primary);
   color: #f8fafc;
   padding: 8px 14px;
   border-radius: 999px;
@@ -426,7 +426,7 @@ const goBack = () => router.push("/dashboard");
 }
 
 .secondary {
-  background: #334155;
+  background: var(--primary-600);
   color: #f8fafc;
   padding: 8px 14px;
   border-radius: 999px;
@@ -464,7 +464,7 @@ const goBack = () => router.push("/dashboard");
 }
 
 .color-swatch.active {
-  border-color: #0f172a;
+  border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.15);
 }
 </style>

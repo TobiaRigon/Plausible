@@ -49,7 +49,7 @@
 }
 
 a {
-  color: #0f172a;
+  color: var(--primary);
   font-weight: 600;
   text-decoration: none;
 }
