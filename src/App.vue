@@ -2,10 +2,9 @@
   <div class="app-shell">
     <header class="app-header">
       <nav class="navbar">
-        <span class="brand">Wallet Simulator</span>
+        <RouterLink class="brand" to="/">Plausible</RouterLink>
         <div class="nav-links">
-          <RouterLink to="/">Dashboard</RouterLink>
-          <RouterLink to="/simulate/alpha">Simulate</RouterLink>
+          <RouterLink to="/dashboard">Dashboard</RouterLink>
           <RouterLink to="/settings">Settings</RouterLink>
         </div>
       </nav>
@@ -17,7 +16,8 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+</script>
 
 <style scoped>
 .app-shell {
@@ -42,6 +42,8 @@
 .brand {
   font-weight: 700;
   letter-spacing: 0.5px;
+  color: #f8fafc;
+  text-decoration: none;
 }
 
 .nav-links {

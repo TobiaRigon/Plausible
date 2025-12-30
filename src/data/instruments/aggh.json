@@ -1,0 +1,11 @@
+{
+  "id": "aggh",
+  "label": "AGGH",
+  "assetClass": "bond_global_ig_eur_hedged",
+  "instrumentType": "ETF",
+  "exposure": "bond",
+  "simModel": "risky",
+  "ter": 0.001,
+  "mu": { "3Y": 0.025, "10Y": 0.02 },
+  "sigma": { "3Y": 0.06, "10Y": 0.05 }
+}

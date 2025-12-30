@@ -1,0 +1,12 @@
+{
+  "id": "inflation_linked_bonds",
+  "label": "Global Inflation-Linked Bonds",
+  "assetClass": "bond_global_inflation_linked",
+  "instrumentType": "ETF",
+  "exposure": "bond",
+  "simModel": "risky",
+  "ter": 0.0015,
+  "mu": { "3Y": 0.025, "10Y": 0.02 },
+  "sigma": { "3Y": 0.07, "10Y": 0.06 },
+  "notes": "Designed to protect purchasing power. Real yields depend on inflation regimes."
+}

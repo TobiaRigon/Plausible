@@ -78,7 +78,7 @@ const buildChart = () => {
       labels: histogram.value.labels,
       datasets: [
         {
-          label: "Distribuzione finale",
+          label: "Final distribution",
           data: histogram.value.counts,
           backgroundColor: "rgba(14, 165, 233, 0.5)",
           borderColor: "#0ea5e9",

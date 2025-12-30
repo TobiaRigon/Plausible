@@ -1,0 +1,12 @@
+{
+  "id": "euro_gov_bonds",
+  "label": "Euro Government Bonds",
+  "assetClass": "bond_euro_government",
+  "instrumentType": "ETF",
+  "exposure": "bond",
+  "simModel": "risky",
+  "ter": 0.0012,
+  "mu": { "3Y": 0.02, "10Y": 0.015 },
+  "sigma": { "3Y": 0.08, "10Y": 0.07 },
+  "notes": "Interest-rate sensitive. Defensive in equity drawdowns, volatile under rate shocks."
+}

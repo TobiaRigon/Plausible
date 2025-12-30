@@ -1,65 +1,100 @@
 <template>
   <section class="dashboard">
-    <h1>Dashboard</h1>
-    <div class="bucket-grid">
-      <article v-for="bucket in bucketsToShow" :key="bucket.id" class="bucket-card">
-        <header class="bucket-header">
-          <h2>{{ bucket.name }}</h2>
-          <span class="bucket-ter">TER medio: {{ formatTer(bucket) }}</span>
-        </header>
+    <div class="header">
+      <div>
+        <h1>My Portfolios</h1>
+      </div>
+      <RouterLink class="primary" to="/portfolio/new">New portfolio</RouterLink>
+    </div>
 
-        <ul class="bucket-assets">
-          <li v-for="asset in bucket.assets" :key="asset.id">
-            {{ asset.name }}
+    <div v-if="portfolios.length === 0" class="empty">
+      <p>Dashboard is empty. No portfolios saved yet.</p>
+      <p class="empty-note">
+        Configurations are personal and saved locally in this browser.
+      </p>
+      <RouterLink class="primary" to="/portfolio/new">New portfolio</RouterLink>
+    </div>
+
+    <div v-else class="grid">
+      <article
+        v-for="portfolio in portfolios"
+        :key="portfolio.id"
+        class="card"
+        :style="{ '--card-accent': portfolio.color || '#e2e8f0' }"
+      >
+        <header>
+          <h2>{{ portfolio.name }}</h2>
+          <p v-if="portfolio.notes" class="notes">{{ portfolio.notes }}</p>
+        </header>
+        <ul>
+          <li v-for="item in resolveItems(portfolio)" :key="item.label">
+            {{ item.label }} — {{ item.weight }}
           </li>
         </ul>
-
-        <button class="bucket-action" type="button" @click="goToSimulation(bucket.id)">
-          Simula
-        </button>
+        <div class="actions">
+          <button type="button" @click="goToSimulation(portfolio.id)">
+            Simulate
+          </button>
+          <button
+            type="button"
+            class="secondary"
+            @click="goToEdit(portfolio.id)"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            class="secondary"
+            @click="duplicate(portfolio.id)"
+          >
+            Duplicate
+          </button>
+          <button type="button" class="danger" @click="remove(portfolio.id)">
+            Delete
+          </button>
+        </div>
       </article>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
-import { loadPortfolio } from "../composables/useStorage";
-import { calculateWeightedTer } from "../composables/usePortfolio";
-
-type Asset = {
-  id: string;
-  name: string;
-  isin?: string;
-  assetClass?: string;
-  ter: number;
-  targetWeight: number;
-};
-
-type Bucket = {
-  id: string;
-  name: string;
-  assets: Asset[];
-};
-
-type Portfolio = {
-  baseCurrency?: string;
-  buckets: Bucket[];
-};
+import { useInstrumentCatalog } from "@/composables/useInstrumentCatalog";
+import { useUserStorage } from "@/composables/useUserStorage";
 
 const router = useRouter();
-const portfolio = ref(loadPortfolio() as Portfolio);
+const { catalog } = useInstrumentCatalog();
+const {
+  listPortfolios,
+  listUserInstruments,
+  deletePortfolio,
+  duplicatePortfolio,
+} = useUserStorage();
 
-const bucketsToShow = computed(() => portfolio.value.buckets.slice(0, 2));
+const userInstruments = listUserInstruments();
+const portfolios = computed(() => listPortfolios());
 
-const formatTer = (bucket: Bucket): string => {
-  const ter = calculateWeightedTer(bucket);
-  return `${(ter * 100).toFixed(2)}%`;
+const resolveItems = (portfolio: ReturnType<typeof listPortfolios>[number]) => {
+  return portfolio.items.map((item) => {
+    const ref = item.instrumentRef;
+    const instrument =
+      ref.kind === "catalog"
+        ? catalog[ref.id]
+        : userInstruments.find((entry) => entry.id === ref.id);
+    const label = instrument?.label ?? "Instrument not found";
+    return { label, weight: `${(item.targetWeight * 100).toFixed(1)}%` };
+  });
 };
 
-const goToSimulation = (bucketId: string) => {
-  router.push(`/simulate/${bucketId}`);
+const goToSimulation = (id: string) => router.push(`/simulate/${id}`);
+const goToEdit = (id: string) => router.push(`/portfolio/${id}/edit`);
+const duplicate = (id: string) => duplicatePortfolio(id);
+const remove = (id: string) => {
+  if (window.confirm("Delete this portfolio?")) {
+    deletePortfolio(id);
+  }
 };
 </script>
 
@@ -70,13 +105,20 @@ const goToSimulation = (bucketId: string) => {
   gap: 16px;
 }
 
-.bucket-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.bucket-card {
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.card {
   background: #ffffff;
   border-radius: 12px;
   padding: 20px;
@@ -84,33 +126,65 @@ const goToSimulation = (bucketId: string) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  border-top: 4px solid var(--card-accent, #e2e8f0);
 }
 
-.bucket-header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.bucket-ter {
-  font-size: 0.9rem;
+.notes {
   color: #475569;
+  margin: 6px 0 0 0;
 }
 
-.bucket-assets {
-  margin: 0;
-  padding-left: 18px;
-  color: #1f2937;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.bucket-action {
-  align-self: flex-start;
+.primary {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 8px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+button {
   border: none;
   background: #0f172a;
   color: #f8fafc;
-  padding: 10px 16px;
+  padding: 8px 14px;
   border-radius: 999px;
   cursor: pointer;
   font-weight: 600;
+}
+
+.secondary {
+  background: #334155;
+}
+
+.danger {
+  background: #b91c1c;
+}
+
+.empty {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.disclaimer {
+  margin-top: 10px;
+  color: #475569;
+  max-width: 520px;
+}
+
+.empty-note {
+  color: #64748b;
 }
 </style>

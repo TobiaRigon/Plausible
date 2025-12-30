@@ -1,31 +1,36 @@
 <template>
   <section class="page">
-    <h1>Simulate</h1>
-    <p>Simulating bucket: <strong>{{ bucketId }}</strong></p>
+    <h1>Simulation</h1>
+    <p>Portfolio: <strong>{{ portfolioLabel }}</strong></p>
+    <p class="disclaimer">
+      This tool does not predict returns. It explores plausible outcomes based
+      on the assumptions you choose. If you are looking for certainty, this is
+      not the right tool.
+    </p>
 
     <div class="section-header">
       <button
         type="button"
         class="toggle-button"
         @click="showSimulator = !showSimulator"
-        aria-label="Mostra o nascondi simulatore"
+        aria-label="Show or hide simulator"
       >
         <span :class="['chevron', { open: showSimulator }]">▶</span>
       </button>
-      <h2>Simulatore</h2>
+      <h2>Simulator</h2>
     </div>
 
     <form v-if="showSimulator" class="simulation-form" @submit.prevent="runSimulation">
       <label class="field">
-        <span>Capitale iniziale</span>
+        <span>Initial capital</span>
         <input v-model.number="form.initialCapital" type="number" min="0" step="100" />
       </label>
       <label class="field">
-        <span>Contributo mensile</span>
+        <span>Monthly contribution</span>
         <input v-model.number="form.monthlyContribution" type="number" min="0" step="1" />
       </label>
       <label class="field">
-        <span>Rendimento annuo atteso (%)</span>
+        <span>Expected annual return (%)</span>
         <input
           v-model.number="form.annualReturn"
           type="number"
@@ -34,30 +39,31 @@
         />
       </label>
       <label class="field">
-        <span>Volatilità annua (%)</span>
+        <span>Annual volatility (%)</span>
         <input
           v-model.number="form.annualVolatility"
           type="number"
           min="0"
           max="100"
           step="0.1"
+          readonly
           @blur="roundPercentInputs"
         />
       </label>
       <label class="field">
-        <span>Inflazione annua (%)</span>
+        <span>Annual inflation (%)</span>
         <input v-model.number="form.annualInflation" type="number" step="0.1" />
       </label>
       <label class="field">
-        <span>Fee annua (%)</span>
+        <span>Annual fee (%)</span>
         <input v-model.number="form.annualFee" type="number" step="0.01" />
       </label>
       <label class="field">
-        <span>Orizzonte (anni)</span>
+        <span>Horizon (years)</span>
         <input v-model.number="form.years" type="number" min="1" max="60" step="1" />
       </label>
       <label class="field">
-        <span>Numero simulazioni</span>
+        <span>Number of simulations</span>
         <input
           v-model.number="form.simulations"
           type="number"
@@ -67,34 +73,35 @@
         />
       </label>
       <label class="field">
-        <span>Ribilanciamento</span>
+        <span>Rebalancing</span>
         <select v-model="form.rebalanceInterval">
-          <option value="none">Mai</option>
-          <option value="6">Ogni 6 mesi</option>
-          <option value="12">Ogni anno</option>
-          <option value="24">Ogni 2 anni</option>
-          <option value="60">Ogni 5 anni</option>
+          <option value="none">Never</option>
+          <option value="6">Every 6 months</option>
+          <option value="12">Every year</option>
+          <option value="24">Every 2 years</option>
+          <option value="60">Every 5 years</option>
         </select>
       </label>
       <label class="field">
         <span>Window</span>
         <select v-model="form.window" @change="updateDefaultsForWindow">
-          <option value="3Y">3Y</option>
-          <option value="10Y">10Y</option>
+          <option v-for="window in windows" :key="window" :value="window">
+            {{ window }}
+          </option>
         </select>
       </label>
       <label class="field">
         <span class="field-label">
-          Soglia (EUR)
+          Threshold (EUR)
           <InfoTooltip
-            text="Soglia finale di riferimento. Indica la probabilita che il valore finale del portafoglio superi questa cifra al termine dell orizzonte scelto. Non influisce sulla simulazione: serve solo a leggere il rischio."
+            text="Reference final threshold. Indicates the probability that the final portfolio value exceeds this amount at the end of the chosen horizon. It does not affect the simulation: it is only used to interpret risk."
           />
         </span>
         <input v-model.number="form.threshold" type="number" min="0" step="100" />
       </label>
 
       <button class="simulate-test" type="submit">
-        Esegui simulazione
+        Run simulation
       </button>
     </form>
 
@@ -102,32 +109,40 @@
       {{ defaultAssumptionsMessage }}
     </p>
     <p v-if="hasRateInstrument" class="info">
-      Nota: XEON viene trattato come tasso (deterministico), non come asset rischioso.
+      Note: cash-like instruments are treated as deterministic rates.
     </p>
     <p v-if="showCorrelationNote" class="info">
-      Volatilità portafoglio stimata con correlazioni default (0 per coppie non specificate).
+      Portfolio volatility estimated with default correlations (0 for unspecified pairs).
+    </p>
+    <p v-if="missingInstruments" class="warning">
+      Some instruments in the portfolio are missing from the catalog and were ignored.
+    </p>
+    <p v-if="missingWindowData" class="warning">
+      Some instruments are missing mu/sigma for the selected window.
     </p>
     <p v-if="warningMessage" class="warning">{{ warningMessage }}</p>
     <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
     <p v-if="progress.total > 0 && progress.completed > 0" class="progress">
-      Avanzamento: {{ formatProgress(progress.completed, progress.total) }}
+      Progress: {{ formatProgress(progress.completed, progress.total) }}
     </p>
 
-    <div v-if="currentBucket && currentBucket.id === 'investments'" class="section-header">
+    <div v-if="currentPortfolio" class="section-header">
       <button
         type="button"
         class="toggle-button"
         @click="showAllocation = !showAllocation"
-        aria-label="Mostra o nascondi allocazione strumenti"
+        aria-label="Show or hide instrument allocation"
       >
         <span :class="['chevron', { open: showAllocation }]">▶</span>
       </button>
-      <h2>Allocazione strumenti</h2>
+      <h2>Instrument allocation (simulation)</h2>
     </div>
     <AllocationEditor
-      v-if="currentBucket && currentBucket.id === 'investments' && showAllocation"
-      :bucket="currentBucket"
-      @update="handleAllocationUpdate"
+      v-if="currentPortfolio && showAllocation"
+      :portfolio-id="currentPortfolio.id"
+      :instruments="mergedInstruments"
+      :default-weights="defaultWeights"
+      @update="handleSimulationAllocationUpdate"
     />
 
     <div v-if="pinnedSimulation" class="section-header">
@@ -135,16 +150,25 @@
         type="button"
         class="toggle-button"
         @click="showDifferences = !showDifferences"
-        aria-label="Mostra o nascondi differenze impostazioni"
+        aria-label="Show or hide settings differences"
       >
         <span :class="['chevron', { open: showDifferences }]">▶</span>
       </button>
-      <h2>Differenze impostazioni</h2>
+      <h2>Settings differences</h2>
     </div>
     <div v-if="pinnedSimulation && showDifferences" class="settings-diff">
       <div class="settings-header">
-        <button type="button" class="secondary-button" @click="clearPinnedSimulation">
-          Rimuovi pin
+        <button
+          type="button"
+          class="icon-button"
+          aria-label="Remove pinned simulation"
+          @click="clearPinnedSimulation"
+        >
+          <span class="icon-stack" aria-hidden="true">
+            <i class="fa-solid fa-thumbtack"></i>
+            <i class="fa-solid fa-xmark"></i>
+          </span>
+          <span class="icon-label">Unpin simulation</span>
         </button>
       </div>
       <p
@@ -152,7 +176,7 @@
           settingsDiffs.length === 0 && allocationDiffDetails.length === 0
         "
       >
-        Nessuna differenza.
+        No differences.
       </p>
       <ul v-else>
         <li v-for="diff in settingsDiffs" :key="diff">{{ diff }}</li>
@@ -163,17 +187,17 @@
     <div v-if="summary && pinnedSimulation" class="comparison-split">
       <div class="sim-column">
         <div class="summary">
-          <h2 class="summary-title">Simulazione attuale</h2>
+          <h2 class="summary-title">Current simulation</h2>
           <div class="summary-grid">
             <div>
-              <h3>Nominale</h3>
+              <h3>Nominal</h3>
             <p class="percentile-row">
                 p10:
                 <span :class="comparisonClass(summary.nominal.p10, pinnedSimulation.summary.nominal.p10)">
                   {{ formatCurrency(summary.nominal.p10) }}
                 </span>
                 <InfoTooltip
-                  text="Scenario sfavorevole. Solo il 10% delle simulazioni termina sotto questo valore."
+                  text="Unfavorable scenario. Only 10% of simulations end below this value."
                 />
             </p>
             <p class="percentile-row">
@@ -182,7 +206,7 @@
                   {{ formatCurrency(summary.nominal.p50) }}
                 </span>
                 <InfoTooltip
-                  text="Scenario centrale (mediana). Il 50% delle simulazioni termina sopra e il 50% sotto questo valore. E il valore piu rappresentativo."
+                  text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
                 />
             </p>
             <p class="percentile-row">
@@ -191,19 +215,19 @@
                   {{ formatCurrency(summary.nominal.p90) }}
                 </span>
                 <InfoTooltip
-                  text="Scenario molto favorevole. Solo il 10% delle simulazioni termina sopra questo valore."
+                  text="Very favorable scenario. Only 10% of simulations end above this value."
                 />
             </p>
             </div>
             <div>
-              <h3>Reale</h3>
+              <h3>Real</h3>
             <p class="percentile-row">
                 p10:
                 <span :class="comparisonClass(summary.real.p10, pinnedSimulation.summary.real.p10)">
                   {{ formatCurrency(summary.real.p10) }}
                 </span>
                 <InfoTooltip
-                  text="Scenario sfavorevole. Solo il 10% delle simulazioni termina sotto questo valore."
+                  text="Unfavorable scenario. Only 10% of simulations end below this value."
                 />
             </p>
             <p class="percentile-row">
@@ -212,7 +236,7 @@
                   {{ formatCurrency(summary.real.p50) }}
                 </span>
                 <InfoTooltip
-                  text="Scenario centrale (mediana). Il 50% delle simulazioni termina sopra e il 50% sotto questo valore. E il valore piu rappresentativo."
+                  text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
                 />
             </p>
             <p class="percentile-row">
@@ -221,12 +245,12 @@
                   {{ formatCurrency(summary.real.p90) }}
                 </span>
                 <InfoTooltip
-                  text="Scenario molto favorevole. Solo il 10% delle simulazioni termina sopra questo valore."
+                  text="Very favorable scenario. Only 10% of simulations end above this value."
                 />
             </p>
             </div>
           <div>
-            <h3>Probabilità soglia</h3>
+            <h3>Threshold probability</h3>
             <p>
               <span
                 :class="
@@ -241,15 +265,15 @@
             </p>
           </div>
           </div>
-          <p class="timing">Tempo di calcolo: {{ computeTimeMs }} ms</p>
+          <p class="timing">Compute time: {{ computeTimeMs }} ms</p>
         </div>
         <div class="charts">
           <div>
-            <h2>Andamento percentili</h2>
+            <h2>Percentile trend</h2>
             <PercentileChart :series="percentileSeries" />
           </div>
           <div>
-            <h2>Distribuzione finale</h2>
+            <h2>Final distribution</h2>
             <DistributionChart :distribution="finalDistribution" />
           </div>
         </div>
@@ -257,66 +281,66 @@
 
       <div class="sim-column">
         <div class="summary">
-          <h2 class="summary-title">Simulazione pin</h2>
+          <h2 class="summary-title">Pinned simulation</h2>
           <div class="summary-grid">
             <div>
-              <h3>Nominale</h3>
+              <h3>Nominal</h3>
               <p class="percentile-row">
                 p10: {{ formatCurrency(pinnedSimulation.summary.nominal.p10) }}
                 <InfoTooltip
-                  text="Scenario sfavorevole. Solo il 10% delle simulazioni termina sotto questo valore."
+                  text="Unfavorable scenario. Only 10% of simulations end below this value."
                 />
               </p>
               <p class="percentile-row">
                 p50: {{ formatCurrency(pinnedSimulation.summary.nominal.p50) }}
                 <InfoTooltip
-                  text="Scenario centrale (mediana). Il 50% delle simulazioni termina sopra e il 50% sotto questo valore. E il valore piu rappresentativo."
+                  text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
                 />
               </p>
               <p class="percentile-row">
                 p90: {{ formatCurrency(pinnedSimulation.summary.nominal.p90) }}
                 <InfoTooltip
-                  text="Scenario molto favorevole. Solo il 10% delle simulazioni termina sopra questo valore."
+                  text="Very favorable scenario. Only 10% of simulations end above this value."
                 />
               </p>
             </div>
             <div>
-              <h3>Reale</h3>
+              <h3>Real</h3>
               <p class="percentile-row">
                 p10: {{ formatCurrency(pinnedSimulation.summary.real.p10) }}
                 <InfoTooltip
-                  text="Scenario sfavorevole. Solo il 10% delle simulazioni termina sotto questo valore."
+                  text="Unfavorable scenario. Only 10% of simulations end below this value."
                 />
               </p>
               <p class="percentile-row">
                 p50: {{ formatCurrency(pinnedSimulation.summary.real.p50) }}
                 <InfoTooltip
-                  text="Scenario centrale (mediana). Il 50% delle simulazioni termina sopra e il 50% sotto questo valore. E il valore piu rappresentativo."
+                  text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
                 />
               </p>
               <p class="percentile-row">
                 p90: {{ formatCurrency(pinnedSimulation.summary.real.p90) }}
                 <InfoTooltip
-                  text="Scenario molto favorevole. Solo il 10% delle simulazioni termina sopra questo valore."
+                  text="Very favorable scenario. Only 10% of simulations end above this value."
                 />
               </p>
             </div>
             <div>
-              <h3>Probabilità soglia</h3>
+              <h3>Threshold probability</h3>
               <p>{{ formatPercent(pinnedSimulation.summary.probabilityAboveThreshold) }}</p>
             </div>
           </div>
           <p class="timing">
-            Tempo di calcolo: {{ pinnedSimulation.computeTimeMs }} ms
+            Compute time: {{ pinnedSimulation.computeTimeMs }} ms
           </p>
         </div>
         <div class="charts">
           <div>
-            <h2>Andamento percentili</h2>
+            <h2>Percentile trend</h2>
             <PercentileChart :series="pinnedSimulation.percentileSeries" />
           </div>
           <div>
-            <h2>Distribuzione finale</h2>
+            <h2>Final distribution</h2>
             <DistributionChart :distribution="pinnedSimulation.finalDistribution" />
           </div>
         </div>
@@ -326,70 +350,76 @@
     
 
     <div v-else-if="summary" class="summary">
-      <h2 class="summary-title">Riepilogo</h2>
+      <h2 class="summary-title">Summary</h2>
       <div class="summary-actions">
-        <button type="button" class="secondary-button" @click="pinCurrentSimulation">
-          Pin simulazione
+        <button
+          type="button"
+          class="icon-button"
+          aria-label="Pin current simulation"
+          @click="pinCurrentSimulation"
+        >
+          <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+          <span class="icon-label">Pin simulation</span>
         </button>
       </div>
       <div class="summary-grid">
         <div>
-          <h3>Nominale</h3>
+          <h3>Nominal</h3>
           <p class="percentile-row">
             p10: {{ formatCurrency(summary.nominal.p10) }}
             <InfoTooltip
-              text="Scenario sfavorevole. Solo il 10% delle simulazioni termina sotto questo valore."
+              text="Unfavorable scenario. Only 10% of simulations end below this value."
             />
           </p>
           <p class="percentile-row">
             p50: {{ formatCurrency(summary.nominal.p50) }}
             <InfoTooltip
-              text="Scenario centrale (mediana). Il 50% delle simulazioni termina sopra e il 50% sotto questo valore. E il valore piu rappresentativo."
+              text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
             />
           </p>
           <p class="percentile-row">
             p90: {{ formatCurrency(summary.nominal.p90) }}
             <InfoTooltip
-              text="Scenario molto favorevole. Solo il 10% delle simulazioni termina sopra questo valore."
+              text="Very favorable scenario. Only 10% of simulations end above this value."
             />
           </p>
         </div>
         <div>
-          <h3>Reale</h3>
+          <h3>Real</h3>
           <p class="percentile-row">
             p10: {{ formatCurrency(summary.real.p10) }}
             <InfoTooltip
-              text="Scenario sfavorevole. Solo il 10% delle simulazioni termina sotto questo valore."
+              text="Unfavorable scenario. Only 10% of simulations end below this value."
             />
           </p>
           <p class="percentile-row">
             p50: {{ formatCurrency(summary.real.p50) }}
             <InfoTooltip
-              text="Scenario centrale (mediana). Il 50% delle simulazioni termina sopra e il 50% sotto questo valore. E il valore piu rappresentativo."
+              text="Central scenario (median). 50% of simulations end above and 50% below this value. This is the most representative value."
             />
           </p>
           <p class="percentile-row">
             p90: {{ formatCurrency(summary.real.p90) }}
             <InfoTooltip
-              text="Scenario molto favorevole. Solo il 10% delle simulazioni termina sopra questo valore."
+              text="Very favorable scenario. Only 10% of simulations end above this value."
             />
           </p>
         </div>
         <div>
-          <h3>Probabilità soglia</h3>
+          <h3>Threshold probability</h3>
           <p>{{ formatPercent(summary.probabilityAboveThreshold) }}</p>
         </div>
       </div>
-      <p class="timing">Tempo di calcolo: {{ computeTimeMs }} ms</p>
+      <p class="timing">Compute time: {{ computeTimeMs }} ms</p>
     </div>
 
     <div v-if="summary && !pinnedSimulation" class="charts">
       <div>
-        <h2>Andamento percentili</h2>
+        <h2>Percentile trend</h2>
         <PercentileChart :series="percentileSeries" />
       </div>
       <div>
-        <h2>Distribuzione finale</h2>
+        <h2>Final distribution</h2>
         <DistributionChart :distribution="finalDistribution" />
       </div>
     </div>
@@ -397,7 +427,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import {
   runMonteCarlo,
@@ -408,41 +438,25 @@ import {
 import PercentileChart from "../components/PercentileChart.vue";
 import DistributionChart from "../components/DistributionChart.vue";
 import InfoTooltip from "../components/InfoTooltip.vue";
-import { loadPortfolio, savePortfolio } from "../composables/useStorage";
-import { useDefaultAssumptions } from "../composables/useDefaultAssumptions";
 import AllocationEditor from "../components/AllocationEditor.vue";
+import { useAppConfig } from "@/composables/useAppConfig";
+import { useInstrumentCatalog } from "@/composables/useInstrumentCatalog";
+import { useUserStorage } from "@/composables/useUserStorage";
 
 const route = useRoute();
-const bucketId = computed(() => route.params.bucketId ?? "");
-
-type Instrument = {
-  id: string;
-  name: string;
-  targetWeight?: number;
-  simModel?: "risky" | "rate";
-};
-
-type Bucket = {
-  id: string;
-  name: string;
-  assets: Instrument[];
-};
-
-type Portfolio = {
-  buckets: Bucket[];
-};
+const portfolioId = computed(() => route.params.portfolioId ?? "");
 
 const form = ref({
-  initialCapital: 10000,
-  monthlyContribution: 300,
-  annualReturn: 6,
-  annualVolatility: 12,
-  annualInflation: 2,
-  annualFee: 0.2,
-  years: 10,
-  simulations: 5000,
-  threshold: 50000,
-  window: "10Y",
+  initialCapital: 0,
+  monthlyContribution: 0,
+  annualReturn: 0,
+  annualVolatility: 0,
+  annualInflation: 0,
+  annualFee: 0,
+  years: 0,
+  simulations: 0,
+  threshold: 0,
+  window: "",
   rebalanceInterval: "none",
 });
 
@@ -468,52 +482,149 @@ const computeTimeMs = ref(0);
 const errorMessage = ref("");
 const defaultAssumptionsMessage = ref("");
 const progress = ref({ completed: 0, total: 0 });
-const STORAGE_PARAMS_KEY = "simulation_params_v1";
 const STORAGE_PIN_KEY = "simulation_pin_v1";
-const fallbackInflation = 2;
 const hasPreset = ref(false);
+const missingInstruments = ref(false);
 const {
-  asOf,
-  getSelectedWindow,
-  getBucketDefaults,
-  getInstrumentAssumption,
-  hasMissingCorrelations,
-} = useDefaultAssumptions();
-const portfolio = ref(loadPortfolio() as Portfolio);
+  listPortfolios,
+  listUserInstruments,
+  loadLastParams,
+  saveLastParams,
+  loadPreferences,
+} =
+  useUserStorage();
+const { catalog } = useInstrumentCatalog();
+const config = useAppConfig();
+const preferences = loadPreferences();
+const FALLBACK_DEFAULTS = {
+  inflation: 2,
+  simulations: 5000,
+  fee: 0.2,
+  threshold: 50000,
+  horizon: 10,
+};
 
-const currentBucket = computed(() =>
-  portfolio.value.buckets.find((entry) => entry.id === bucketId.value)
+const portfolios = computed(() => listPortfolios());
+const userInstruments = computed(() => listUserInstruments());
+const currentPortfolio = computed(() =>
+  portfolios.value.find((portfolio) => portfolio.id === String(portfolioId.value))
 );
-const hasRateInstrument = computed(() =>
-  currentBucket.value?.assets.some((asset) => asset.simModel === "rate")
+const simulationAllocation = ref<Record<string, number>>({});
+const portfolioLabel = computed(
+  () => currentPortfolio.value?.name ?? String(portfolioId.value)
 );
-const showCorrelationNote = computed(() => {
-  if (!currentBucket.value) return false;
-  return hasMissingCorrelations(currentBucket.value.assets ?? [], form.value.window);
+
+const mergedInstruments = computed(() => {
+  const portfolio = currentPortfolio.value;
+  if (!portfolio) return [];
+  missingInstruments.value = false;
+  return portfolio.items
+    .map((item) => {
+      const ref = item.instrumentRef;
+      const instrument =
+        ref.kind === "catalog"
+          ? catalog[ref.id]
+          : userInstruments.value.find((entry) => entry.id === ref.id);
+      if (!instrument) {
+        missingInstruments.value = true;
+        return null;
+      }
+      const overrideWeight = simulationAllocation.value[ref.id];
+      return {
+        id: ref.id,
+        label: instrument.label,
+        simModel: instrument.simModel,
+        targetWeight:
+          typeof overrideWeight === "number" ? overrideWeight : item.targetWeight,
+      };
+    })
+    .filter(
+      (value): value is { id: string; label: string; simModel: "risky" | "rate"; targetWeight: number } =>
+        value !== null
+    );
 });
+
+const defaultWeights = computed(() => {
+  const portfolio = currentPortfolio.value;
+  if (!portfolio) return {};
+  return portfolio.items.reduce<Record<string, number>>((acc, item) => {
+    acc[item.instrumentRef.id] = item.targetWeight;
+    return acc;
+  }, {});
+});
+
+const hasRateInstrument = computed(() =>
+  mergedInstruments.value.some((asset) => asset.simModel === "rate")
+);
+
+const showCorrelationNote = computed(() => {
+  const riskyIds = mergedInstruments.value
+    .filter((asset) => asset.simModel === "risky")
+    .map((asset) => asset.id);
+  if (!riskyIds.length) return false;
+  const map = config.correlations?.[form.value.window] ?? {};
+  for (let i = 0; i < riskyIds.length; i += 1) {
+    for (let j = i + 1; j < riskyIds.length; j += 1) {
+      const direct = map[riskyIds[i]]?.[riskyIds[j]];
+      const reverse = map[riskyIds[j]]?.[riskyIds[i]];
+      if (typeof direct !== "number" && typeof reverse !== "number") {
+        return true;
+      }
+    }
+  }
+  return false;
+});
+
+const windows = computed(() => config.windows ?? ["10Y"]);
+
+const resolveInstrument = (id: string) =>
+  catalog[id] ?? userInstruments.value.find((entry) => entry.id === id);
+
+const missingWindowData = computed(() =>
+  mergedInstruments.value.some((asset) => {
+    const instrument = resolveInstrument(asset.id);
+    if (!instrument) return true;
+    return (
+      typeof instrument.mu?.[form.value.window] !== "number" ||
+      typeof instrument.sigma?.[form.value.window] !== "number"
+    );
+  })
+);
 
 const warningMessage = computed(() =>
   form.value.simulations >= 10000
-    ? "Numero simulazioni elevato: le performance possono degradare."
+    ? "High number of simulations: performance may degrade."
     : ""
 );
 
 const runSimulation = async () => {
   errorMessage.value = "";
+  if (!currentPortfolio.value) {
+    errorMessage.value = "Invalid portfolio.";
+    return;
+  }
+  if (form.value.years <= 0 || form.value.simulations <= 0) {
+    errorMessage.value = "Complete the main parameters before running.";
+    return;
+  }
+  if (missingWindowData.value) {
+    errorMessage.value = "Missing mu/sigma data for the selected window.";
+    return;
+  }
   if (form.value.years < 1 || form.value.years > 60) {
-    errorMessage.value = "L'orizzonte deve essere tra 1 e 60 anni.";
+    errorMessage.value = "Horizon must be between 1 and 60 years.";
     return;
   }
   if (form.value.annualVolatility < 0 || form.value.annualVolatility > 100) {
-    errorMessage.value = "La volatilità deve essere tra 0 e 100%.";
+    errorMessage.value = "Volatility must be between 0 and 100%.";
     return;
   }
   if (form.value.simulations < 100 || form.value.simulations > 20000) {
-    errorMessage.value = "Le simulazioni devono essere tra 100 e 20000.";
+    errorMessage.value = "Simulations must be between 100 and 20000.";
     return;
   }
 
-  saveSimulationParams();
+  saveSimulationParamsLocal();
   const months = Math.max(1, Math.round(form.value.years * 12));
   const start = performance.now();
   progress.value = { completed: 0, total: form.value.simulations };
@@ -522,17 +633,21 @@ const runSimulation = async () => {
   });
 
   try {
-    const instrumentsPayload =
-      currentBucket.value?.assets.map((asset) => {
-        const assumption = getInstrumentAssumption(asset.id, form.value.window);
-        return {
-          id: asset.id,
-          simModel: asset.simModel ?? "risky",
-          targetWeight: asset.targetWeight ?? 0,
-          mu: assumption?.mu ?? 0,
-          sigma: assumption?.sigma ?? 0,
-        };
-      }) ?? [];
+    const useInstrumentModel =
+      hasRateInstrument.value || form.value.rebalanceInterval !== "none";
+    const instrumentsPayload = useInstrumentModel
+      ? mergedInstruments.value.map((item) => {
+          const instrument = resolveInstrument(item.id);
+          return {
+            id: item.id,
+            simModel: instrument?.simModel ?? "risky",
+            targetWeight: item.targetWeight,
+            mu: instrument?.mu?.[form.value.window] ?? 0,
+            sigma: instrument?.sigma?.[form.value.window] ?? 0,
+          };
+        })
+      : undefined;
+
     const result = await runMonteCarlo({
       initialCapital: form.value.initialCapital,
       monthlyContribution: form.value.monthlyContribution,
@@ -545,7 +660,7 @@ const runSimulation = async () => {
       months,
       instruments: instrumentsPayload,
       rebalanceIntervalMonths:
-        form.value.rebalanceInterval == "none"
+        form.value.rebalanceInterval === "none"
           ? null
           : Number(form.value.rebalanceInterval),
     });
@@ -555,21 +670,21 @@ const runSimulation = async () => {
     percentileSeries.value = result.seriesPercentiles;
     finalDistribution.value = result.finalDistribution;
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : "Errore simulazione.";
+    errorMessage.value = error instanceof Error ? error.message : "Simulation error.";
   } finally {
     unsubscribe();
   }
 };
 
 const formatCurrency = (value: number): string =>
-  new Intl.NumberFormat("it-IT", {
+  new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "EUR",
     maximumFractionDigits: 0,
   }).format(value);
 
 const formatPercent = (value: number): string =>
-  new Intl.NumberFormat("it-IT", {
+  new Intl.NumberFormat("en-US", {
     style: "percent",
     maximumFractionDigits: 1,
   }).format(value);
@@ -584,17 +699,17 @@ const settingsDiffs = computed(() => {
   if (!pinnedSimulation.value) return [];
   const pinned = pinnedSimulation.value.params as Record<string, unknown>;
   const labels: Record<string, string> = {
-    initialCapital: "Capitale iniziale",
-    monthlyContribution: "Contributo mensile",
-    annualReturn: "Rendimento annuo atteso (%)",
-    annualVolatility: "Volatilita annua (%)",
-    annualInflation: "Inflazione annua (%)",
-    annualFee: "Fee annua (%)",
-    years: "Orizzonte (anni)",
-    simulations: "Numero simulazioni",
-    threshold: "Soglia (EUR)",
+    initialCapital: "Initial capital",
+    monthlyContribution: "Monthly contribution",
+    annualReturn: "Expected annual return (%)",
+    annualVolatility: "Annual volatility (%)",
+    annualInflation: "Annual inflation (%)",
+    annualFee: "Annual fee (%)",
+    years: "Horizon (years)",
+    simulations: "Number of simulations",
+    threshold: "Threshold (EUR)",
     window: "Window",
-    rebalanceInterval: "Ribilanciamento",
+    rebalanceInterval: "Rebalancing",
   };
   return Object.keys(labels)
     .map((key) => {
@@ -606,30 +721,14 @@ const settingsDiffs = computed(() => {
     .filter((value): value is string => value !== null);
 });
 
-const hasAllocationDiff = computed(() => {
-  if (!pinnedSimulation.value || !currentBucket.value) return false;
-  const pinnedAllocation = pinnedSimulation.value.allocation ?? [];
-  if (pinnedAllocation.length === 0) return false;
-  const currentMap = new Map(
-    currentBucket.value.assets.map((asset) => [
-      asset.id,
-      asset.targetWeight ?? 0,
-    ])
-  );
-  return pinnedAllocation.some((entry) => {
-    const currentWeight = currentMap.get(entry.id) ?? 0;
-    return Math.abs(currentWeight - (entry.targetWeight ?? 0)) > 0.0001;
-  });
-});
-
 const allocationDiffDetails = computed(() => {
-  if (!pinnedSimulation.value || !currentBucket.value) return [];
+  if (!pinnedSimulation.value) return [];
   const pinnedAllocation = pinnedSimulation.value.allocation ?? [];
   if (pinnedAllocation.length === 0) return [];
   const currentMap = new Map(
-    currentBucket.value.assets.map((asset) => [
+    mergedInstruments.value.map((asset) => [
       asset.id,
-      { name: asset.name, weight: asset.targetWeight ?? 0 },
+      { name: asset.label, weight: asset.targetWeight ?? 0 },
     ])
   );
   return pinnedAllocation
@@ -652,16 +751,7 @@ const comparisonClass = (currentValue: number, pinnedValue: number): string => {
   return currentValue > pinnedValue ? "better" : "worse";
 };
 
-const loadSavedParams = (): Record<string, unknown> => {
-  const raw = window.localStorage.getItem(STORAGE_PARAMS_KEY);
-  if (!raw) return {};
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-};
+const loadSavedParams = (): Record<string, unknown> => loadLastParams();
 
 const loadPinnedSimulation = () => {
   const raw = window.localStorage.getItem(STORAGE_PIN_KEY);
@@ -682,12 +772,11 @@ const pinCurrentSimulation = () => {
     summary: summary.value,
     percentileSeries: percentileSeries.value,
     finalDistribution: finalDistribution.value,
-    params: { ...form.value, bucketId: bucketId.value },
-    allocation:
-      currentBucket.value?.assets.map((asset) => ({
-        id: asset.id,
-        targetWeight: asset.targetWeight ?? 0,
-      })) ?? [],
+    params: { ...form.value, portfolioId: portfolioId.value },
+    allocation: mergedInstruments.value.map((asset) => ({
+      id: asset.id,
+      targetWeight: asset.targetWeight ?? 0,
+    })),
     createdAt: new Date().toISOString(),
     computeTimeMs: computeTimeMs.value,
   };
@@ -700,12 +789,12 @@ const clearPinnedSimulation = () => {
   window.localStorage.removeItem(STORAGE_PIN_KEY);
 };
 
-const saveSimulationParams = () => {
+const saveSimulationParamsLocal = () => {
   const saved = loadSavedParams();
-  const bucketKey = String(bucketId.value || "default");
+  const portfolioKey = String(portfolioId.value || "default");
   const next = {
     ...saved,
-    [bucketKey]: {
+    [portfolioKey]: {
       initialCapital: form.value.initialCapital,
       monthlyContribution: form.value.monthlyContribution,
       annualReturn: form.value.annualReturn,
@@ -717,75 +806,149 @@ const saveSimulationParams = () => {
       threshold: form.value.threshold,
       window: form.value.window,
       rebalanceInterval: form.value.rebalanceInterval,
+      allocationOverrides: simulationAllocation.value,
     },
   };
-  window.localStorage.setItem(STORAGE_PARAMS_KEY, JSON.stringify(next));
+  saveLastParams(next);
+};
+
+const getPortfolioStats = () => {
+  const items = mergedInstruments.value;
+  const weights = items.map((item) => item.targetWeight);
+  const sum = weights.reduce((acc, value) => acc + value, 0);
+  const normalized = sum > 0 ? weights.map((value) => value / sum) : weights;
+  let mu = 0;
+  let variance = 0;
+  const riskyIds: string[] = [];
+
+  items.forEach((item, index) => {
+    const instrument = resolveInstrument(item.id);
+    if (!instrument) return;
+    const muValue = instrument.mu?.[form.value.window];
+    const sigmaValue = instrument.sigma?.[form.value.window];
+    if (typeof muValue !== "number" || typeof sigmaValue !== "number") return;
+    mu += normalized[index] * muValue;
+    if (instrument.simModel === "risky") {
+      riskyIds.push(item.id);
+    }
+  });
+
+  if (riskyIds.length === 1) {
+    const instrument = resolveInstrument(riskyIds[0]);
+    const sigmaValue = instrument?.sigma?.[form.value.window];
+    const index = items.findIndex((item) => item.id === riskyIds[0]);
+    if (typeof sigmaValue === "number" && index >= 0) {
+      variance = normalized[index] * normalized[index] * sigmaValue * sigmaValue;
+    }
+  } else if (riskyIds.length > 1) {
+    riskyIds.forEach((a) => {
+      riskyIds.forEach((b) => {
+        const instrumentA = resolveInstrument(a);
+        const instrumentB = resolveInstrument(b);
+        if (!instrumentA || !instrumentB) return;
+        const sigmaA = instrumentA.sigma?.[form.value.window];
+        const sigmaB = instrumentB.sigma?.[form.value.window];
+        if (typeof sigmaA !== "number" || typeof sigmaB !== "number") return;
+        const idxA = items.findIndex((item) => item.id === a);
+        const idxB = items.findIndex((item) => item.id === b);
+        const corr =
+          config.correlations?.[form.value.window]?.[a]?.[b] ??
+          config.correlations?.[form.value.window]?.[b]?.[a] ??
+          (a === b ? 1 : 0);
+        variance += normalized[idxA] * normalized[idxB] * sigmaA * sigmaB * corr;
+      });
+    });
+  }
+
+  return { mu, sigma: Math.sqrt(Math.max(0, variance)) };
 };
 
 const applyDefaultsIfEmpty = () => {
-  if (!bucketId.value) return;
+  if (!portfolioId.value) return;
   const saved = loadSavedParams();
-  const bucketKey = String(bucketId.value);
-  if (saved[bucketKey]) {
+  const portfolioKey = String(portfolioId.value);
+  if (saved[portfolioKey]) {
     hasPreset.value = true;
-    const preset = saved[bucketKey] as Record<string, unknown>;
+    const preset = saved[portfolioKey] as Record<string, unknown>;
     form.value = {
       ...form.value,
       ...preset,
     };
+    simulationAllocation.value = (preset.allocationOverrides as Record<string, number>) ?? {};
+    const stats = getPortfolioStats();
+    form.value.annualVolatility = stats.sigma * 100;
+    roundPercentInputs();
     return;
   }
 
   hasPreset.value = false;
-  const bucket = currentBucket.value;
-  if (!bucket) return;
-
-  const defaults = getBucketDefaults(bucket.assets ?? [], form.value.window);
-  if (defaults.mu > 0) {
-    form.value.annualReturn = defaults.mu * 100;
-  }
-  if (defaults.sigma > 0) {
-    form.value.annualVolatility = defaults.sigma * 100;
-  }
-  const inflation = defaults.inflation ?? fallbackInflation / 100;
-  form.value.annualInflation = inflation * 100;
-  defaultAssumptionsMessage.value = `Default assumptions (asOf: ${asOf}) loaded`;
+  if (!currentPortfolio.value) return;
+  simulationAllocation.value = {};
+  const stats = getPortfolioStats();
+  form.value.annualReturn = stats.mu * 100;
+  form.value.annualVolatility = stats.sigma * 100;
+  defaultAssumptionsMessage.value = `Assumptions computed from user profile (asOf: ${config.asOf})`;
+  roundPercentInputs();
 };
 
 onMounted(() => {
-  form.value.window = getSelectedWindow();
+  form.value.window = (preferences.window as string) || config.windows?.[0] || "10Y";
+  form.value.annualInflation = Number(
+    preferences.inflationDefault ?? FALLBACK_DEFAULTS.inflation
+  );
+  form.value.simulations = Number(
+    preferences.simulationsDefault ?? FALLBACK_DEFAULTS.simulations
+  );
+  form.value.annualFee = Number(preferences.feeDefault ?? FALLBACK_DEFAULTS.fee);
+  form.value.threshold = Number(
+    preferences.thresholdDefault ?? FALLBACK_DEFAULTS.threshold
+  );
+  form.value.years = Number(
+    preferences.horizonDefaultYears ?? FALLBACK_DEFAULTS.horizon
+  );
+  form.value.rebalanceInterval = "none";
   applyDefaultsIfEmpty();
   loadPinnedSimulation();
 });
 
+watch(
+  () => portfolioId.value,
+  () => {
+    form.value.rebalanceInterval = "none";
+    applyDefaultsIfEmpty();
+  }
+);
+
+watch(
+  () => [mergedInstruments.value, form.value.window],
+  () => {
+    const stats = getPortfolioStats();
+    form.value.annualVolatility = stats.sigma * 100;
+    roundPercentInputs();
+  },
+  { deep: true }
+);
+
 const updateDefaultsForWindow = () => {
   if (hasPreset.value) return;
-  if (!bucketId.value) return;
-  const bucket = currentBucket.value;
-  if (!bucket) return;
-  const defaults = getBucketDefaults(bucket.assets ?? [], form.value.window);
-  if (defaults.mu > 0) {
-    form.value.annualReturn = defaults.mu * 100;
-  }
-  if (defaults.sigma > 0) {
-    form.value.annualVolatility = defaults.sigma * 100;
-  }
-  form.value.annualInflation = defaults.inflation * 100;
-  defaultAssumptionsMessage.value = `Default assumptions (asOf: ${asOf}) loaded`;
+  if (!portfolioId.value) return;
+  if (!currentPortfolio.value) return;
+  const stats = getPortfolioStats();
+  form.value.annualReturn = stats.mu * 100;
+  form.value.annualVolatility = stats.sigma * 100;
+  defaultAssumptionsMessage.value = `Assumptions computed from user profile (asOf: ${config.asOf})`;
+  roundPercentInputs();
 };
 
-const handleAllocationUpdate = (bucket: Bucket) => {
-  portfolio.value = {
-    ...portfolio.value,
-    buckets: portfolio.value.buckets.map((entry) =>
-      entry.id === bucket.id ? bucket : entry
-    ),
-  };
-  savePortfolio(portfolio.value as { version: number; buckets: Bucket[] });
-  if (!hasPreset.value) {
-    updateDefaultsForWindow();
-  }
+const handleSimulationAllocationUpdate = (updated: Record<string, number>) => {
+  simulationAllocation.value = updated;
+  const stats = getPortfolioStats();
+  form.value.annualReturn = stats.mu * 100;
+  form.value.annualVolatility = stats.sigma * 100;
+  roundPercentInputs();
 };
+
+
 
 const roundPercentInputs = () => {
   form.value.annualReturn = roundTo(form.value.annualReturn, 1);
@@ -796,6 +959,7 @@ const roundTo = (value: number, digits: number): number => {
   const factor = Math.pow(10, digits);
   return Math.round((Number.isFinite(value) ? value : 0) * factor) / factor;
 };
+
 </script>
 
 <style scoped>
@@ -804,6 +968,12 @@ const roundTo = (value: number, digits: number): number => {
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.disclaimer {
+  margin-top: 6px;
+  color: #475569;
+  max-width: 560px;
 }
 
 .section-header {
@@ -841,6 +1011,46 @@ const roundTo = (value: number, digits: number): number => {
   border-radius: 999px;
   cursor: pointer;
   font-weight: 600;
+}
+
+.icon-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 4px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-stack {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.icon-stack .fa-thumbtack {
+  font-size: 1rem;
+}
+
+.icon-stack .fa-xmark {
+  position: absolute;
+  font-size: 0.6rem;
+  right: -0.15em;
+  top: -0.15em;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 0 0.05em;
+}
+
+.icon-label {
+  font-size: 0.9rem;
+  color: #334155;
 }
 
 .simulation-form {

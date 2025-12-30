@@ -1,63 +1,75 @@
-import defaultPortfolio from "../data/portfolio.default.json";
+const ALLOCATION_KEY = "portfolio_allocations_v1";
+const PORTFOLIO_OVERRIDES_KEY = "portfolio_overrides_v1";
+const SIM_PARAMS_KEY = "simulation_params_v2";
 
-type Portfolio = {
-  version: number;
-  buckets: unknown[];
-};
+type AllocationOverrides = Record<string, Record<string, number>>;
 
-const STORAGE_KEY = "portfolio_sim_v1";
-const CURRENT_VERSION = 1;
-
-const clonePortfolio = (portfolio: Portfolio): Portfolio => {
-  if (typeof structuredClone === "function") {
-    return structuredClone(portfolio);
-  }
-  return JSON.parse(JSON.stringify(portfolio)) as Portfolio;
-};
-
-const normalizePortfolio = (value: unknown): Portfolio => {
-  if (!value || typeof value !== "object") {
-    return clonePortfolio(defaultPortfolio as Portfolio);
-  }
-
-  const candidate = value as Partial<Portfolio>;
-  if (candidate.version !== CURRENT_VERSION || !Array.isArray(candidate.buckets)) {
-    return clonePortfolio(defaultPortfolio as Portfolio);
-  }
-
-  return {
-    version: CURRENT_VERSION,
-    buckets: candidate.buckets,
-  };
-};
-
-export const loadPortfolio = (): Portfolio => {
+export const loadAllocationOverrides = (): AllocationOverrides => {
   if (typeof window === "undefined" || !window.localStorage) {
-    return clonePortfolio(defaultPortfolio as Portfolio);
+    return {};
   }
-
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return clonePortfolio(defaultPortfolio as Portfolio);
-  }
-
+  const raw = window.localStorage.getItem(ALLOCATION_KEY);
+  if (!raw) return {};
   try {
-    const parsed = JSON.parse(raw) as unknown;
-    return normalizePortfolio(parsed);
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
   } catch {
-    return clonePortfolio(defaultPortfolio as Portfolio);
+    return {};
   }
 };
 
-export const savePortfolio = (portfolio: Portfolio): void => {
+export const saveAllocationOverrides = (overrides: AllocationOverrides): void => {
   if (typeof window === "undefined" || !window.localStorage) {
     return;
   }
+  window.localStorage.setItem(ALLOCATION_KEY, JSON.stringify(overrides));
+};
 
-  const payload: Portfolio = {
-    version: CURRENT_VERSION,
-    buckets: Array.isArray(portfolio.buckets) ? portfolio.buckets : [],
-  };
+export const loadPortfolioOverrides = (): Record<
+  string,
+  Array<{ instrumentId: string; targetWeight: number }>
+> => {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return {};
+  }
+  const raw = window.localStorage.getItem(PORTFOLIO_OVERRIDES_KEY);
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+export const savePortfolioOverrides = (
+  overrides: Record<string, Array<{ instrumentId: string; targetWeight: number }>>
+): void => {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  window.localStorage.setItem(PORTFOLIO_OVERRIDES_KEY, JSON.stringify(overrides));
+};
+
+export const loadSimulationParams = (): Record<string, unknown> => {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return {};
+  }
+  const raw = window.localStorage.getItem(SIM_PARAMS_KEY);
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+export const saveSimulationParams = (
+  params: Record<string, unknown>
+): void => {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  window.localStorage.setItem(SIM_PARAMS_KEY, JSON.stringify(params));
 };

@@ -1,0 +1,11 @@
+{
+  "id": "vwce",
+  "label": "VWCE",
+  "assetClass": "equity_global",
+  "instrumentType": "ETF",
+  "exposure": "equity",
+  "simModel": "risky",
+  "ter": 0.0019,
+  "mu": { "3Y": 0.06, "10Y": 0.07 },
+  "sigma": { "3Y": 0.18, "10Y": 0.15 }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "gold",
+  "label": "Physical Gold ETC",
+  "assetClass": "commodity_gold",
+  "instrumentType": "ETC",
+  "exposure": "commodity",
+  "simModel": "risky",
+  "ter": 0.0025,
+  "mu": { "3Y": 0.04, "10Y": 0.03 },
+  "sigma": { "3Y": 0.15, "10Y": 0.14 },
+  "notes": "Store of value and inflation hedge. No cash flows; returns driven by macro regimes."
+}

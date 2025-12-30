@@ -1,0 +1,24 @@
+{
+  "version": 3,
+  "asOf": "2025-12-30",
+  "baseCurrency": "EUR",
+  "units": {
+    "mu": "decimal_per_year",
+    "sigma": "decimal_per_year",
+    "inflation": "decimal_per_year"
+  },
+  "methodology": {
+    "note": "Valori stimati da storico di riferimento e usati come default per simulazioni Monte Carlo (non previsione).",
+    "muInterpretation": "expected nominal return",
+    "sigmaInterpretation": "annualized volatility",
+    "returns": "proxy-based historical estimation"
+  },
+  "windows": ["3Y", "10Y"],
+  "simulationModels": ["portfolio_gbm"],
+  "correlations": {
+    "10Y": {
+      "vwce": { "aggh": 0.0, "btce": 0.2 },
+      "aggh": { "btce": 0.0 }
+    }
+  }
+}

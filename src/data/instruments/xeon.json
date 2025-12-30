@@ -1,0 +1,12 @@
+{
+  "id": "xeon",
+  "label": "XEON",
+  "assetClass": "cash_like",
+  "instrumentType": "ETF",
+  "exposure": "cash",
+  "simModel": "rate",
+  "ter": 0.001,
+  "mu": { "3Y": 0.03, "10Y": 0.01 },
+  "sigma": { "3Y": 0.0005, "10Y": 0.0005 },
+  "notes": "Overnight ETF: return linked to ECB rates; volatility is mostly technical noise."
+}

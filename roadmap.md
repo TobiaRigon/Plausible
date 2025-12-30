@@ -1,206 +1,124 @@
-# Simulatore Portafoglio Investimenti (Vercel)
+# Plausible — Core Declaration
 
-## Obiettivo
+## Core Service Definition
 
-Realizzare una web app deployata su **Vercel** usando **Vue 3 + Vite + TypeScript** (no backend obbligatorio). che consenta di simulare l’evoluzione di un portafoglio finanziario **senza prezzi live**.
+**Plausible** is fundamentally a **Monte Carlo–based outcome simulator**.
 
-L’app gestisce **due bucket separati**:
+The core of the service is the generation of **many plausible future scenarios** for an investment plan, and the estimation of their **probabilities**, given a set of explicit assumptions.
 
-- **Fondo Emergenze** (strumento cash-like)
-- **Fondo Investimenti** (azionario + obbligazionario + Bitcoin)
+Plausible does **not** replay historical market paths.
+It does **not** forecast a single future.
 
-Tutto il calcolo è **client-side**. Nessun backend obbligatorio. Architettura già predisposta per una futura integrazione API.
-
----
-
-## Bucket e Strumenti
-
-### 1. Fondo Emergenze
-
-- **Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C (XEON)**
-
-  - ISIN: LU0290358497
-  - Asset class: cash-like
-  - TER: ~0,10%
-
-### 2. Fondo Investimenti
-
-- **Vanguard FTSE All-World UCITS ETF (Acc)**
-
-  - ISIN: IE00BK5BQT80
-  - Asset class: equity_global
-  - TER: ~0,19%
-
-- **iShares Core Global Aggregate Bond UCITS ETF EUR Hedged (Acc)**
-
-  - ISIN: IE00BDBRDM35
-  - Asset class: bond_global_ig_eur_hedged
-  - TER: ~0,10%
-
-- **WisdomTree Physical Bitcoin**
-
-  - ISIN: GB00BJYDH287
-  - Asset class: crypto_bitcoin
-  - TER: ~0,15% (fee agevolata, da considerare variabile nel tempo)
+Instead, it explores a _distribution of possible outcomes_ constrained by historically coherent risk characteristics.
 
 ---
 
-## File di Seed
+## What “Based on Historical Data” Means
 
-Creare `data/portfolio.default.json` come configurazione iniziale del progetto.
+Historical data is used **only** to inform the _parameters_ of the model:
 
-Contiene:
+- expected returns (μ)
+- volatility (σ)
+- correlations (where applicable)
 
-- valuta base (EUR)
-- bucket
-- strumenti
-- TER
-- asset class
+These parameters are:
 
-La UI parte sempre da questo seed, poi sovrascrivibile via localStorage.
+- explicitly visible
+- configurable by the user
+- versioned over time
 
----
+Historical prices are **not** used as simulation paths.
 
-## Funzionalità MVP
-
-### Dashboard
-
-- Visualizza i due bucket come card separate
-- Elenco strumenti per bucket
-- TER medio calcolato
-- Pulsante “Simula”
-
-### Simulatore
-
-Input:
-
-- capitale iniziale
-- contributo mensile (PAC)
-- orizzonte temporale (anni)
-- rendimento atteso annuo (μ)
-- volatilità annua (σ)
-- inflazione annua
-- numero simulazioni Monte Carlo
-- ribilanciamento (none / annuale semplificato)
-
-Output:
-
-- valore finale p10 / p50 / p90
-- valore reale (inflation-adjusted)
-- probabilità di superare una soglia
-- grafico andamento nel tempo (bande percentile)
-- istogramma distribuzione finale
+> We do not simulate history.
+> We simulate plausible futures constrained by historical risk.
 
 ---
 
-## Motore di Simulazione
+## Monte Carlo as the Core Engine
 
-### Time Step
+At the heart of Plausible is a Monte Carlo engine that:
 
-- mensile
+- generates thousands of independent stochastic paths
+- models time evolution at a monthly resolution
+- incorporates contributions, fees, inflation, and rebalancing
+- produces probability distributions rather than point estimates
 
-### Modello
-
-- Geometric Brownian Motion (GBM)
-- PAC mensile
-- applicazione TER mensile
-
-Formula concettuale:
-
-- ogni mese: `(valore + contributo) * exp(rendimento_mensile)`
-- fee applicata mensilmente
-
-### Monte Carlo
-
-- default: 5.000 simulazioni
-- restituisce:
-
-  - serie temporale percentili (p10/p50/p90)
-  - distribuzione finale
-  - metriche riassuntive
+Each simulation run represents **one possible world**.
+The aggregate represents a **probability space**.
 
 ---
 
-## Gestione Bucket
+## Why Monte Carlo (and Not Backtesting)
 
-### Fondo Emergenze
+Backtesting answers:
 
-- μ basso
-- σ molto bassa
-- simulazione coerente ma semplice
+> “What would have happened if the past repeated exactly?”
 
-### Fondo Investimenti
+Monte Carlo answers:
 
-- pesi target configurabili in UI
-- MVP: μ e σ inseriti manualmente a livello di portafoglio
-- Fase futura: calcolo μ e σ pesati + correlazioni
+> “What _could_ plausibly happen, given the risk characteristics of the assets?”
 
----
+Plausible intentionally avoids historical backtests because:
 
-## Architettura Frontend (Vue 3)
+- they rely on a single realized path
+- they embed regime-specific bias
+- they often overstate certainty
 
-### Viste / Routing (Vue Router)
-
-- `/` Dashboard
-- `/simulate/:bucketId`
-- `/settings` (import/export, reset)
-
-### Componenti Vue
-
-- BucketCard.vue
-- InstrumentTable.vue
-- SimulationForm.vue
-- ResultsSummary.vue
-- PercentileChart.vue
-- DistributionChart.vue
-
-### Moduli / Composables
-
-- `src/types/index.ts`
-- `src/composables/usePortfolio.ts` (TER, pesi, validazioni)
-- `src/composables/useSimulationEngine.ts` (Monte Carlo)
-- `src/composables/useStorage.ts` (localStorage + versioning)
+Monte Carlo exposes uncertainty instead of hiding it.
 
 ---
 
-## Persistenza
+## Interpreting Results
 
-- Tutti i parametri salvati in localStorage
-- Versioning dello schema per evitare rotture future
+Outputs such as:
 
----
+- p10 / p50 / p90 values
+- percentile bands
+- probability of reaching a threshold
 
-## Estensione Futura (NON MVP)
+should be read as:
 
-### Prezzi Live
+- ranges, not predictions
+- likelihoods, not promises
 
-- interfaccia `MarketDataProvider`
-- implementazione futura via API route Vercel
-- caching e protezione API key
-
-### Extra
-
-- valore attuale portafoglio
-- backtest (con warning bias)
-- import CSV broker
-- confronto storico vs simulato
+The median (p50) is **not** an expected outcome.
+It is the center of the simulated distribution.
 
 ---
 
-## Milestones di Sviluppo (Vue-first)
+## Roadmap Alignment (Clarification)
 
-1. Setup Vue 3 + Vite + TypeScript
-2. Seed `portfolio.default.json`
-3. Dashboard bucket
-4. Simulatore base (1 path)
-5. Monte Carlo + grafici
-6. Scenari predefiniti
-7. Export / import
-8. Preparazione hook per API future
+The roadmap is intentionally centered around:
+
+- improving scenario realism
+- making assumptions more explicit
+- enhancing interpretability of distributions
+
+Future work may include:
+
+- stress scenarios
+- regime-based assumptions
+- comparison of assumption sets
+
+But the **core will remain Monte Carlo simulation**, not historical replay.
 
 ---
 
-## Nota di progetto
+## Positioning Statement (Short Form)
 
-L’obiettivo non è fare previsioni, ma **capire sensibilità, range e probabilità**.
-UI semplice, niente fuffa, niente overengineering tipo Bloomberg domestico.
+> Plausible is a Monte Carlo–based simulator for exploring plausible investment outcomes.
+> It uses historical data to constrain assumptions, not to predict the future.
+
+---
+
+## Non-Negotiables
+
+Plausible will never:
+
+- present historical performance as a promise
+- collapse uncertainty into a single number
+- optimize allocations for the user
+- hide modeling assumptions
+
+Uncertainty is the product.
+Transparency is the feature.

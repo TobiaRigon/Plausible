@@ -1,0 +1,12 @@
+{
+  "id": "nasdaq100",
+  "label": "NASDAQ-100 Equity",
+  "assetClass": "equity_us_tech",
+  "instrumentType": "ETF",
+  "exposure": "equity",
+  "simModel": "risky",
+  "ter": 0.0015,
+  "mu": { "3Y": 0.08, "10Y": 0.09 },
+  "sigma": { "3Y": 0.22, "10Y": 0.20 },
+  "notes": "US large-cap growth/tech concentration. Higher volatility and regime risk than broad equity indices."
+}

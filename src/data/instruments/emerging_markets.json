@@ -1,0 +1,12 @@
+{
+  "id": "emerging_markets",
+  "label": "Emerging Markets Equity",
+  "assetClass": "equity_emerging",
+  "instrumentType": "ETF",
+  "exposure": "equity",
+  "simModel": "risky",
+  "ter": 0.0022,
+  "mu": { "3Y": 0.07, "10Y": 0.08 },
+  "sigma": { "3Y": 0.22, "10Y": 0.20 },
+  "notes": "Higher growth potential with higher volatility and political risk."
+}

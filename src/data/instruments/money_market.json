@@ -1,0 +1,12 @@
+{
+  "id": "money_market",
+  "label": "Money Market Fund",
+  "assetClass": "cash_like",
+  "instrumentType": "ETF",
+  "exposure": "cash",
+  "simModel": "rate",
+  "ter": 0.0010,
+  "mu": { "3Y": 0.03, "10Y": 0.01 },
+  "sigma": { "3Y": 0.0005, "10Y": 0.0005 },
+  "notes": "Cash-equivalent. Returns driven by short-term interest rates."
+}

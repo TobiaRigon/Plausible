@@ -1,16 +1,15 @@
 <template>
   <div class="allocation-card">
-    <h2>Allocazione strumenti</h2>
     <table class="allocation-table">
       <thead>
         <tr>
-          <th>Strumento</th>
-          <th>Peso (%)</th>
+          <th>Instrument</th>
+          <th>Weight (%)</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(instrument, index) in bucket.assets" :key="instrument.id">
-          <td>{{ instrument.name }}</td>
+        <tr v-for="(instrument, index) in instruments" :key="instrument.id">
+          <td>{{ instrument.label }}</td>
           <td>
             <input
               v-model.number="weights[index]"
@@ -26,60 +25,54 @@
     </table>
 
     <div class="summary">
-      <span>Totale: {{ totalWeight.toFixed(2) }}%</span>
+      <span>Total: {{ totalWeight.toFixed(2) }}%</span>
       <span v-if="!isTotalValid" class="warning">Somma diversa da 100%</span>
     </div>
 
     <div class="actions">
       <button type="button" @click="normalizeWeights">Normalizza</button>
-      <button type="button" class="secondary" @click="resetToSeed">Reset</button>
+      <button type="button" class="secondary" @click="resetToDefaults">Reset</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import seedPortfolio from "@/data/portfolio.default.json";
 
 type Instrument = {
   id: string;
-  name: string;
-  targetWeight?: number;
-  simModel?: "risky" | "rate";
-};
-
-type Bucket = {
-  id: string;
-  name: string;
-  assets: Instrument[];
+  label: string;
+  targetWeight: number;
 };
 
 const props = defineProps<{
-  bucket: Bucket;
+  portfolioId: string;
+  instruments: Instrument[];
+  defaultWeights: Record<string, number>;
 }>();
 
 const emit = defineEmits<{
-  (event: "update", value: Bucket): void;
+  (event: "update", value: Record<string, number>): void;
 }>();
 
-const buildWeights = (bucket: Bucket): number[] => {
-  const provided = bucket.assets.map((asset) =>
+const buildWeights = (instruments: Instrument[]): number[] => {
+  const provided = instruments.map((asset) =>
     typeof asset.targetWeight === "number" ? asset.targetWeight * 100 : 0
   );
   const sum = provided.reduce((acc, value) => acc + value, 0);
   if (sum > 0) {
     return provided;
   }
-  const equal = bucket.assets.length > 0 ? 100 / bucket.assets.length : 0;
-  return bucket.assets.map(() => equal);
+  const equal = instruments.length > 0 ? 100 / instruments.length : 0;
+  return instruments.map(() => equal);
 };
 
-const weights = ref<number[]>(buildWeights(props.bucket));
+const weights = ref<number[]>(buildWeights(props.instruments));
 
 watch(
-  () => [props.bucket.id, props.bucket.assets.length],
+  () => [props.portfolioId, props.instruments.length],
   () => {
-    weights.value = buildWeights(props.bucket);
+    weights.value = buildWeights(props.instruments);
   }
 );
 
@@ -90,57 +83,39 @@ const totalWeight = computed(() =>
 const isTotalValid = computed(() => Math.abs(totalWeight.value - 100) < 0.1);
 
 const emitUpdate = () => {
-  const updated: Bucket = {
-    ...props.bucket,
-    assets: props.bucket.assets.map((asset, index) => ({
-      ...asset,
-      targetWeight: Math.max(
+  const updated = props.instruments.reduce<Record<string, number>>(
+    (acc, instrument, index) => {
+      const value = Math.max(
         0,
         Math.min(100, Number.isFinite(weights.value[index]) ? weights.value[index] : 0)
-      ) / 100,
-    })),
-  };
+      );
+      acc[instrument.id] = value / 100;
+      return acc;
+    },
+    {}
+  );
   emit("update", updated);
 };
 
 const normalizeWeights = () => {
-  if (weights.value.length === 0) return;
-  const coreIndex = Math.max(
-    0,
-    props.bucket.assets.findIndex((asset) => asset.id === "vwce")
-  );
-  const coreWeight = Math.max(
-    0,
-    Math.min(100, Number.isFinite(weights.value[coreIndex]) ? weights.value[coreIndex] : 0)
-  );
-  const remaining = Math.max(0, 100 - coreWeight);
-  const others = weights.value.map((value, index) =>
-    index === coreIndex ? 0 : Number.isFinite(value) ? value : 0
-  );
-  const othersSum = others.reduce((acc, value) => acc + value, 0);
-  weights.value = weights.value.map((value, index) => {
-    if (index === coreIndex) return coreWeight;
-    if (othersSum <= 0) {
-      const count = weights.value.length - 1;
-      return count > 0 ? remaining / count : 0;
-    }
-    return (others[index] / othersSum) * remaining;
-  });
+  const sum = totalWeight.value;
+  if (sum <= 0) return;
+  weights.value = weights.value.map((value) => (value / sum) * 100);
   emitUpdate();
 };
 
-const resetToSeed = () => {
-  const seed = seedPortfolio as { buckets: Bucket[] };
-  const bucket = seed.buckets.find((entry) => entry.id === props.bucket.id);
-  if (!bucket) return;
-  weights.value = buildWeights(bucket);
-  emit("update", bucket);
+const resetToDefaults = () => {
+  const updated = props.instruments.map((instrument) =>
+    (props.defaultWeights[instrument.id] ?? 0) * 100
+  );
+  weights.value = updated.length ? updated : buildWeights(props.instruments);
+  emitUpdate();
 };
 </script>
 
 <style scoped>
 .allocation-card {
-  margin-top: 24px;
+  margin-top: 16px;
   padding: 16px;
   border-radius: 12px;
   background: #ffffff;
@@ -150,7 +125,6 @@ const resetToSeed = () => {
 .allocation-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 12px;
 }
 
 .allocation-table th,

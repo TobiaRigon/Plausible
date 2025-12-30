@@ -1,0 +1,12 @@
+{
+  "id": "btce",
+  "label": "Bitcoin ETP",
+  "assetClass": "crypto_bitcoin",
+  "instrumentType": "ETP",
+  "exposure": "commodity",
+  "simModel": "risky",
+  "ter": 0.0015,
+  "mu": { "3Y": 0.12, "10Y": 0.18 },
+  "sigma": { "3Y": 0.65, "10Y": 0.8 },
+  "notes": "Highly speculative asset; past returns were high but are not repeatable."
+}
