@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import logoUrl from "@/assets/plausible-logo.png";
+const logoUrl = "/plausible-logo.png";
 </script>
 
 <style scoped>
