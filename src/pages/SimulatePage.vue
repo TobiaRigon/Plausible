@@ -3,7 +3,19 @@
     <h1>Simulate</h1>
     <p>Simulating bucket: <strong>{{ bucketId }}</strong></p>
 
-    <form class="simulation-form" @submit.prevent="runSimulation">
+    <div class="section-header">
+      <button
+        type="button"
+        class="toggle-button"
+        @click="showSimulator = !showSimulator"
+        aria-label="Mostra o nascondi simulatore"
+      >
+        <span :class="['chevron', { open: showSimulator }]">▶</span>
+      </button>
+      <h2>Simulatore</h2>
+    </div>
+
+    <form v-if="showSimulator" class="simulation-form" @submit.prevent="runSimulation">
       <label class="field">
         <span>Capitale iniziale</span>
         <input v-model.number="form.initialCapital" type="number" min="0" step="100" />
@@ -55,6 +67,16 @@
         />
       </label>
       <label class="field">
+        <span>Ribilanciamento</span>
+        <select v-model="form.rebalanceInterval">
+          <option value="none">Mai</option>
+          <option value="6">Ogni 6 mesi</option>
+          <option value="12">Ogni anno</option>
+          <option value="24">Ogni 2 anni</option>
+          <option value="60">Ogni 5 anni</option>
+        </select>
+      </label>
+      <label class="field">
         <span>Window</span>
         <select v-model="form.window" @change="updateDefaultsForWindow">
           <option value="3Y">3Y</option>
@@ -91,8 +113,225 @@
       Avanzamento: {{ formatProgress(progress.completed, progress.total) }}
     </p>
 
-    <div v-if="summary" class="summary">
+    <div v-if="currentBucket && currentBucket.id === 'investments'" class="section-header">
+      <button
+        type="button"
+        class="toggle-button"
+        @click="showAllocation = !showAllocation"
+        aria-label="Mostra o nascondi allocazione strumenti"
+      >
+        <span :class="['chevron', { open: showAllocation }]">▶</span>
+      </button>
+      <h2>Allocazione strumenti</h2>
+    </div>
+    <AllocationEditor
+      v-if="currentBucket && currentBucket.id === 'investments' && showAllocation"
+      :bucket="currentBucket"
+      @update="handleAllocationUpdate"
+    />
+
+    <div v-if="pinnedSimulation" class="section-header">
+      <button
+        type="button"
+        class="toggle-button"
+        @click="showDifferences = !showDifferences"
+        aria-label="Mostra o nascondi differenze impostazioni"
+      >
+        <span :class="['chevron', { open: showDifferences }]">▶</span>
+      </button>
+      <h2>Differenze impostazioni</h2>
+    </div>
+    <div v-if="pinnedSimulation && showDifferences" class="settings-diff">
+      <div class="settings-header">
+        <button type="button" class="secondary-button" @click="clearPinnedSimulation">
+          Rimuovi pin
+        </button>
+      </div>
+      <p
+        v-if="
+          settingsDiffs.length === 0 && allocationDiffDetails.length === 0
+        "
+      >
+        Nessuna differenza.
+      </p>
+      <ul v-else>
+        <li v-for="diff in settingsDiffs" :key="diff">{{ diff }}</li>
+        <li v-for="diff in allocationDiffDetails" :key="diff">{{ diff }}</li>
+      </ul>
+    </div>
+
+    <div v-if="summary && pinnedSimulation" class="comparison-split">
+      <div class="sim-column">
+        <div class="summary">
+          <h2 class="summary-title">Simulazione attuale</h2>
+          <div class="summary-grid">
+            <div>
+              <h3>Nominale</h3>
+            <p class="percentile-row">
+                p10:
+                <span :class="comparisonClass(summary.nominal.p10, pinnedSimulation.summary.nominal.p10)">
+                  {{ formatCurrency(summary.nominal.p10) }}
+                </span>
+                <InfoTooltip
+                  text="Scenario sfavorevole. Solo il 10% delle simulazioni termina sotto questo valore."
+                />
+            </p>
+            <p class="percentile-row">
+                p50:
+                <span :class="comparisonClass(summary.nominal.p50, pinnedSimulation.summary.nominal.p50)">
+                  {{ formatCurrency(summary.nominal.p50) }}
+                </span>
+                <InfoTooltip
+                  text="Scenario centrale (mediana). Il 50% delle simulazioni termina sopra e il 50% sotto questo valore. E il valore piu rappresentativo."
+                />
+            </p>
+            <p class="percentile-row">
+                p90:
+                <span :class="comparisonClass(summary.nominal.p90, pinnedSimulation.summary.nominal.p90)">
+                  {{ formatCurrency(summary.nominal.p90) }}
+                </span>
+                <InfoTooltip
+                  text="Scenario molto favorevole. Solo il 10% delle simulazioni termina sopra questo valore."
+                />
+            </p>
+            </div>
+            <div>
+              <h3>Reale</h3>
+            <p class="percentile-row">
+                p10:
+                <span :class="comparisonClass(summary.real.p10, pinnedSimulation.summary.real.p10)">
+                  {{ formatCurrency(summary.real.p10) }}
+                </span>
+                <InfoTooltip
+                  text="Scenario sfavorevole. Solo il 10% delle simulazioni termina sotto questo valore."
+                />
+            </p>
+            <p class="percentile-row">
+                p50:
+                <span :class="comparisonClass(summary.real.p50, pinnedSimulation.summary.real.p50)">
+                  {{ formatCurrency(summary.real.p50) }}
+                </span>
+                <InfoTooltip
+                  text="Scenario centrale (mediana). Il 50% delle simulazioni termina sopra e il 50% sotto questo valore. E il valore piu rappresentativo."
+                />
+            </p>
+            <p class="percentile-row">
+                p90:
+                <span :class="comparisonClass(summary.real.p90, pinnedSimulation.summary.real.p90)">
+                  {{ formatCurrency(summary.real.p90) }}
+                </span>
+                <InfoTooltip
+                  text="Scenario molto favorevole. Solo il 10% delle simulazioni termina sopra questo valore."
+                />
+            </p>
+            </div>
+          <div>
+            <h3>Probabilità soglia</h3>
+            <p>
+              <span
+                :class="
+                  comparisonClass(
+                    summary.probabilityAboveThreshold,
+                    pinnedSimulation.summary.probabilityAboveThreshold
+                  )
+                "
+              >
+                {{ formatPercent(summary.probabilityAboveThreshold) }}
+              </span>
+            </p>
+          </div>
+          </div>
+          <p class="timing">Tempo di calcolo: {{ computeTimeMs }} ms</p>
+        </div>
+        <div class="charts">
+          <div>
+            <h2>Andamento percentili</h2>
+            <PercentileChart :series="percentileSeries" />
+          </div>
+          <div>
+            <h2>Distribuzione finale</h2>
+            <DistributionChart :distribution="finalDistribution" />
+          </div>
+        </div>
+      </div>
+
+      <div class="sim-column">
+        <div class="summary">
+          <h2 class="summary-title">Simulazione pin</h2>
+          <div class="summary-grid">
+            <div>
+              <h3>Nominale</h3>
+              <p class="percentile-row">
+                p10: {{ formatCurrency(pinnedSimulation.summary.nominal.p10) }}
+                <InfoTooltip
+                  text="Scenario sfavorevole. Solo il 10% delle simulazioni termina sotto questo valore."
+                />
+              </p>
+              <p class="percentile-row">
+                p50: {{ formatCurrency(pinnedSimulation.summary.nominal.p50) }}
+                <InfoTooltip
+                  text="Scenario centrale (mediana). Il 50% delle simulazioni termina sopra e il 50% sotto questo valore. E il valore piu rappresentativo."
+                />
+              </p>
+              <p class="percentile-row">
+                p90: {{ formatCurrency(pinnedSimulation.summary.nominal.p90) }}
+                <InfoTooltip
+                  text="Scenario molto favorevole. Solo il 10% delle simulazioni termina sopra questo valore."
+                />
+              </p>
+            </div>
+            <div>
+              <h3>Reale</h3>
+              <p class="percentile-row">
+                p10: {{ formatCurrency(pinnedSimulation.summary.real.p10) }}
+                <InfoTooltip
+                  text="Scenario sfavorevole. Solo il 10% delle simulazioni termina sotto questo valore."
+                />
+              </p>
+              <p class="percentile-row">
+                p50: {{ formatCurrency(pinnedSimulation.summary.real.p50) }}
+                <InfoTooltip
+                  text="Scenario centrale (mediana). Il 50% delle simulazioni termina sopra e il 50% sotto questo valore. E il valore piu rappresentativo."
+                />
+              </p>
+              <p class="percentile-row">
+                p90: {{ formatCurrency(pinnedSimulation.summary.real.p90) }}
+                <InfoTooltip
+                  text="Scenario molto favorevole. Solo il 10% delle simulazioni termina sopra questo valore."
+                />
+              </p>
+            </div>
+            <div>
+              <h3>Probabilità soglia</h3>
+              <p>{{ formatPercent(pinnedSimulation.summary.probabilityAboveThreshold) }}</p>
+            </div>
+          </div>
+          <p class="timing">
+            Tempo di calcolo: {{ pinnedSimulation.computeTimeMs }} ms
+          </p>
+        </div>
+        <div class="charts">
+          <div>
+            <h2>Andamento percentili</h2>
+            <PercentileChart :series="pinnedSimulation.percentileSeries" />
+          </div>
+          <div>
+            <h2>Distribuzione finale</h2>
+            <DistributionChart :distribution="pinnedSimulation.finalDistribution" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+
+    <div v-else-if="summary" class="summary">
       <h2 class="summary-title">Riepilogo</h2>
+      <div class="summary-actions">
+        <button type="button" class="secondary-button" @click="pinCurrentSimulation">
+          Pin simulazione
+        </button>
+      </div>
       <div class="summary-grid">
         <div>
           <h3>Nominale</h3>
@@ -144,7 +383,7 @@
       <p class="timing">Tempo di calcolo: {{ computeTimeMs }} ms</p>
     </div>
 
-    <div v-if="summary" class="charts">
+    <div v-if="summary && !pinnedSimulation" class="charts">
       <div>
         <h2>Andamento percentili</h2>
         <PercentileChart :series="percentileSeries" />
@@ -154,12 +393,6 @@
         <DistributionChart :distribution="finalDistribution" />
       </div>
     </div>
-
-    <AllocationEditor
-      v-if="currentBucket && currentBucket.id === 'investments'"
-      :bucket="currentBucket"
-      @update="handleAllocationUpdate"
-    />
   </section>
 </template>
 
@@ -210,16 +443,33 @@ const form = ref({
   simulations: 5000,
   threshold: 50000,
   window: "10Y",
+  rebalanceInterval: "none",
 });
+
+const showSimulator = ref(true);
+const showAllocation = ref(true);
+const showDifferences = ref(true);
+
+type PinnedSimulation = {
+  summary: MonteCarloSummary;
+  percentileSeries: PercentileSeriesPoint[];
+  finalDistribution: number[];
+  params: Record<string, unknown>;
+  allocation?: Array<{ id: string; targetWeight?: number }>;
+  createdAt: string;
+  computeTimeMs: number;
+};
 
 const summary = ref<MonteCarloSummary | null>(null);
 const percentileSeries = ref<PercentileSeriesPoint[]>([]);
 const finalDistribution = ref<number[]>([]);
+const pinnedSimulation = ref<PinnedSimulation | null>(null);
 const computeTimeMs = ref(0);
 const errorMessage = ref("");
 const defaultAssumptionsMessage = ref("");
 const progress = ref({ completed: 0, total: 0 });
 const STORAGE_PARAMS_KEY = "simulation_params_v1";
+const STORAGE_PIN_KEY = "simulation_pin_v1";
 const fallbackInflation = 2;
 const hasPreset = ref(false);
 const {
@@ -294,7 +544,10 @@ const runSimulation = async () => {
       simulations: form.value.simulations,
       months,
       instruments: instrumentsPayload,
-      rebalanceAnnual: false,
+      rebalanceIntervalMonths:
+        form.value.rebalanceInterval == "none"
+          ? null
+          : Number(form.value.rebalanceInterval),
     });
     const end = performance.now();
     computeTimeMs.value = Math.round(end - start);
@@ -327,6 +580,78 @@ const formatProgress = (completed: number, total: number): string => {
   return `${completed}/${total} (${percent}%)`;
 };
 
+const settingsDiffs = computed(() => {
+  if (!pinnedSimulation.value) return [];
+  const pinned = pinnedSimulation.value.params as Record<string, unknown>;
+  const labels: Record<string, string> = {
+    initialCapital: "Capitale iniziale",
+    monthlyContribution: "Contributo mensile",
+    annualReturn: "Rendimento annuo atteso (%)",
+    annualVolatility: "Volatilita annua (%)",
+    annualInflation: "Inflazione annua (%)",
+    annualFee: "Fee annua (%)",
+    years: "Orizzonte (anni)",
+    simulations: "Numero simulazioni",
+    threshold: "Soglia (EUR)",
+    window: "Window",
+    rebalanceInterval: "Ribilanciamento",
+  };
+  return Object.keys(labels)
+    .map((key) => {
+      const currentValue = (form.value as Record<string, unknown>)[key];
+      const pinnedValue = pinned[key];
+      if (currentValue === pinnedValue) return null;
+      return `${labels[key]}: ${String(pinnedValue)} → ${String(currentValue)}`;
+    })
+    .filter((value): value is string => value !== null);
+});
+
+const hasAllocationDiff = computed(() => {
+  if (!pinnedSimulation.value || !currentBucket.value) return false;
+  const pinnedAllocation = pinnedSimulation.value.allocation ?? [];
+  if (pinnedAllocation.length === 0) return false;
+  const currentMap = new Map(
+    currentBucket.value.assets.map((asset) => [
+      asset.id,
+      asset.targetWeight ?? 0,
+    ])
+  );
+  return pinnedAllocation.some((entry) => {
+    const currentWeight = currentMap.get(entry.id) ?? 0;
+    return Math.abs(currentWeight - (entry.targetWeight ?? 0)) > 0.0001;
+  });
+});
+
+const allocationDiffDetails = computed(() => {
+  if (!pinnedSimulation.value || !currentBucket.value) return [];
+  const pinnedAllocation = pinnedSimulation.value.allocation ?? [];
+  if (pinnedAllocation.length === 0) return [];
+  const currentMap = new Map(
+    currentBucket.value.assets.map((asset) => [
+      asset.id,
+      { name: asset.name, weight: asset.targetWeight ?? 0 },
+    ])
+  );
+  return pinnedAllocation
+    .map((entry) => {
+      const current = currentMap.get(entry.id);
+      if (!current) return null;
+      const pinnedWeight = entry.targetWeight ?? 0;
+      if (Math.abs(current.weight - pinnedWeight) <= 0.0001) return null;
+      const format = (value: number) => `${(value * 100).toFixed(1)}%`;
+      return `${current.name}: ${format(pinnedWeight)} → ${format(current.weight)}`;
+    })
+    .filter((value): value is string => value !== null);
+});
+
+const comparisonClass = (currentValue: number, pinnedValue: number): string => {
+  if (!Number.isFinite(currentValue) || !Number.isFinite(pinnedValue)) {
+    return "";
+  }
+  if (currentValue === pinnedValue) return "";
+  return currentValue > pinnedValue ? "better" : "worse";
+};
+
 const loadSavedParams = (): Record<string, unknown> => {
   const raw = window.localStorage.getItem(STORAGE_PARAMS_KEY);
   if (!raw) return {};
@@ -336,6 +661,43 @@ const loadSavedParams = (): Record<string, unknown> => {
   } catch {
     return {};
   }
+};
+
+const loadPinnedSimulation = () => {
+  const raw = window.localStorage.getItem(STORAGE_PIN_KEY);
+  if (!raw) return;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      pinnedSimulation.value = parsed as PinnedSimulation;
+    }
+  } catch {
+    pinnedSimulation.value = null;
+  }
+};
+
+const pinCurrentSimulation = () => {
+  if (!summary.value) return;
+  const payload: PinnedSimulation = {
+    summary: summary.value,
+    percentileSeries: percentileSeries.value,
+    finalDistribution: finalDistribution.value,
+    params: { ...form.value, bucketId: bucketId.value },
+    allocation:
+      currentBucket.value?.assets.map((asset) => ({
+        id: asset.id,
+        targetWeight: asset.targetWeight ?? 0,
+      })) ?? [],
+    createdAt: new Date().toISOString(),
+    computeTimeMs: computeTimeMs.value,
+  };
+  pinnedSimulation.value = payload;
+  window.localStorage.setItem(STORAGE_PIN_KEY, JSON.stringify(payload));
+};
+
+const clearPinnedSimulation = () => {
+  pinnedSimulation.value = null;
+  window.localStorage.removeItem(STORAGE_PIN_KEY);
 };
 
 const saveSimulationParams = () => {
@@ -354,6 +716,7 @@ const saveSimulationParams = () => {
       simulations: form.value.simulations,
       threshold: form.value.threshold,
       window: form.value.window,
+      rebalanceInterval: form.value.rebalanceInterval,
     },
   };
   window.localStorage.setItem(STORAGE_PARAMS_KEY, JSON.stringify(next));
@@ -392,6 +755,7 @@ const applyDefaultsIfEmpty = () => {
 onMounted(() => {
   form.value.window = getSelectedWindow();
   applyDefaultsIfEmpty();
+  loadPinnedSimulation();
 });
 
 const updateDefaultsForWindow = () => {
@@ -440,6 +804,32 @@ const roundTo = (value: number, digits: number): number => {
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.toggle-button {
+  border: none;
+  background: transparent;
+  color: #0f172a;
+  padding: 0;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.chevron {
+  display: inline-block;
+  font-size: 0.85rem;
+  transition: transform 0.2s ease;
+}
+
+.chevron.open {
+  transform: rotate(90deg);
 }
 
 .simulate-test {
@@ -505,6 +895,23 @@ const roundTo = (value: number, digits: number): number => {
   margin: 0 0 8px 0;
 }
 
+.summary-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.secondary-button {
+  border: none;
+  background: #334155;
+  color: #f8fafc;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
 .percentile-row {
   display: flex;
   align-items: center;
@@ -545,5 +952,47 @@ const roundTo = (value: number, digits: number): number => {
   margin-top: 24px;
   display: grid;
   gap: 24px;
+}
+
+.comparison-split {
+  margin-top: 24px;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.sim-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.settings-diff {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-diff ul {
+  margin: 8px 0 0 18px;
+}
+
+.better {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.worse {
+  color: #b91c1c;
+  font-weight: 700;
 }
 </style>

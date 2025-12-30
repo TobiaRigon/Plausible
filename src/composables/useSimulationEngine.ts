@@ -23,7 +23,7 @@ export type MonteCarloParams = SimulationParams & {
     targetWeight?: number;
     simModel?: "risky" | "rate";
   }>;
-  rebalanceAnnual?: boolean;
+  rebalanceIntervalMonths?: number | null;
 };
 
 export type PercentileSeriesPoint = {

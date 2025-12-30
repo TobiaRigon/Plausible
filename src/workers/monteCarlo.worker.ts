@@ -18,7 +18,7 @@ type MonteCarloParams = SimulationParams & {
     targetWeight?: number;
     simModel?: "risky" | "rate";
   }>;
-  rebalanceAnnual?: boolean;
+  rebalanceIntervalMonths?: number | null;
 };
 
 type PercentileSeriesPoint = {
@@ -139,7 +139,11 @@ const simulateBucketPath = (
       values[index] *= 1 - monthlyFee;
     });
 
-    if (params.rebalanceAnnual && (monthIndex + 1) % 12 === 0) {
+    if (
+      typeof params.rebalanceIntervalMonths === "number" &&
+      params.rebalanceIntervalMonths > 0 &&
+      (monthIndex + 1) % params.rebalanceIntervalMonths === 0
+    ) {
       const total = values.reduce((acc, value) => acc + value, 0);
       values.forEach((_, index) => {
         values[index] = total * weights[index];
@@ -175,9 +179,12 @@ const runMonteCarlo = (params: MonteCarloParams): MonteCarloResult => {
 
   const seriesBuckets: number[][] = Array.from({ length: months }, () => []);
   const finalDistribution: number[] = [];
+  const hasInstruments = (params.instruments ?? []).length > 0;
   const useInstrumentModel =
-    (params.instruments ?? []).some((instrument) => instrument.simModel === "rate") &&
-    (params.instruments ?? []).length > 0;
+    hasInstruments &&
+    (((params.instruments ?? []).some((instrument) => instrument.simModel === "rate")) ||
+      (typeof params.rebalanceIntervalMonths === "number" &&
+        params.rebalanceIntervalMonths > 0));
 
   for (let i = 0; i < simulations; i += 1) {
     const { series, finalValue } = useInstrumentModel
