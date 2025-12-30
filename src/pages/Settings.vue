@@ -97,6 +97,18 @@
       <div class="card-body">
       <h2>Import</h2>
       <p>Paste an exported JSON and import the profile.</p>
+      <div class="mb-2">
+        <label class="form-label fw-semibold" for="import-file">
+          Upload JSON file
+        </label>
+        <input
+          id="import-file"
+          type="file"
+          class="form-control"
+          accept="application/json,.json"
+          @change="handleImportFile"
+        />
+      </div>
       <div class="actions d-flex flex-wrap gap-3">
         <div class="form-check">
           <input
@@ -327,6 +339,21 @@ const resetData = () => {
     thresholdDefault: 0,
     horizonDefaultYears: 0,
   };
+};
+
+const handleImportFile = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    importJson.value = text;
+    importMessage.value = "File loaded. Ready to import.";
+  } catch {
+    importMessage.value = "Could not read file.";
+  } finally {
+    input.value = "";
+  }
 };
 
 loadPrefs();

@@ -598,8 +598,15 @@
       </div>
       <div v-if="showInfoPanel" class="info-body">
         <p>
-          Monte Carlo generates many plausible paths. It is not a forecast and does not
-          predict returns.
+          <a
+            href="https://en.wikipedia.org/wiki/Monte_Carlo_method"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Monte Carlo
+          </a>
+          generates many plausible paths. It is not a forecast and does not predict
+          returns.
         </p>
         <p>
           <InfoTooltip text="A percentile is a statistical cutoff. p10 means 10% of outcomes are below it.">
