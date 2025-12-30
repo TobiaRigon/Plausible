@@ -3,6 +3,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
+  "installCommand": "npm install && chmod -R +x node_modules/.bin && chmod -R +x node_modules/@esbuild/*/bin/esbuild",
   "cleanUrls": true,
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
