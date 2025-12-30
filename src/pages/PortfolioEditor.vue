@@ -114,13 +114,15 @@
         <div class="catalog-list">
           <div
             v-for="instrument in filteredCatalog"
-            :key="instrument.id"
+            :key="`${instrument.kind}:${instrument.id}`"
             class="catalog-item"
           >
             <div>
               <strong>{{ instrument.label }}</strong>
-              <span class="code-badge">{{ instrument.code }}</span>
-              <span class="meta secondary-line">ISIN: {{ instrument.isin }}</span>
+              <span v-if="instrument.code" class="code-badge">{{ instrument.code }}</span>
+              <span v-if="instrument.isin" class="meta secondary-line">
+                ISIN: {{ instrument.isin }}
+              </span>
               <p class="meta">
                 {{ instrument.instrumentType || "Other" }} ·
                 {{ instrument.exposure || "Other" }} ·
@@ -132,7 +134,7 @@
             <button
               type="button"
               class="btn btn-primary"
-              @click="addCatalogInstrument(instrument.id)"
+              @click="addCatalogInstrument(instrument)"
             >
               Add
             </button>
@@ -248,11 +250,26 @@ const catalogExposureFilters = computed(() => {
   });
   return Array.from(filters).sort();
 });
+const mergedCatalog = computed(() => {
+  const userList = listUserInstruments().map((instrument) => ({
+    ...instrument,
+    kind: "user" as const,
+    assetClass: instrument.assetClass || "custom",
+    instrumentType: instrument.instrumentType || "Custom",
+    exposure: instrument.exposure || "Custom",
+  }));
+  const staticList = (catalogList ?? []).map((instrument) => ({
+    ...instrument,
+    kind: "catalog" as const,
+  }));
+  return [...staticList, ...userList];
+});
+
 const filteredCatalog = computed(() => {
   const query = catalogSearch.value.trim().toLowerCase();
   const typeFilter = catalogTypeFilter.value;
   const exposureFilter = catalogExposureFilter.value;
-  return (catalogList ?? []).filter((instrument) => {
+  return mergedCatalog.value.filter((instrument) => {
     if (typeFilter !== "all" && instrument.instrumentType !== typeFilter) return false;
     if (exposureFilter !== "all" && instrument.exposure !== exposureFilter) return false;
     if (!query) return true;
@@ -286,11 +303,12 @@ const resolveCode = (item: { ref: UserPortfolioItem["instrumentRef"] }) =>
 const resolveIsin = (item: { ref: UserPortfolioItem["instrumentRef"] }) =>
   resolveInstrumentByRef(item)?.isin ?? "";
 
-const addCatalogInstrument = (instrumentId: string) => {
-  if (!instrumentId) return;
+const addCatalogInstrument = (instrument: { id: string; kind: "catalog" | "user" }) => {
+  if (!instrument?.id) return;
+  const kind = instrument.kind === "user" ? "user" : "catalog";
   items.value.push({
-    id: `catalog:${instrumentId}`,
-    ref: { kind: "catalog", id: instrumentId },
+    id: `${kind}:${instrument.id}`,
+    ref: { kind, id: instrument.id },
     weight: 0,
   });
 };

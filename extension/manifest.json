@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Plausible Instrument Helper",
+  "version": "0.1.0",
+  "description": "Capture JustETF info and add a custom instrument to Plausible.",
+  "action": {
+    "default_title": "Plausible Instrument Helper",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "plausible-logo.png",
+      "32": "plausible-logo.png",
+      "48": "plausible-logo.png",
+      "128": "plausible-logo.png"
+    }
+  },
+  "icons": {
+    "16": "plausible-logo.png",
+    "32": "plausible-logo.png",
+    "48": "plausible-logo.png",
+    "128": "plausible-logo.png"
+  },
+  "permissions": ["storage", "scripting", "activeTab", "tabs"],
+  "host_permissions": [
+    "https://www.justetf.com/*",
+    "http://localhost:5173/*",
+    "http://localhost:4173/*",
+    "http://127.0.0.1:5173/*",
+    "https://plausible-mc.vercel.app/*"
+  ]
+}

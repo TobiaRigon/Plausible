@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plausible Instrument Helper</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <img class="logo" src="plausible-logo.png" alt="Plausible logo" />
+      <div>
+        <h1>Plausible Instrument Helper</h1>
+        <p class="subtitle">Capture from JustETF and write to Plausible local storage.</p>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="row">
+        <button id="capture" class="btn">Capture from JustETF</button>
+        <button id="reset" class="btn ghost">Reset</button>
+      </div>
+      <p id="status" class="status">Ready.</p>
+    </section>
+
+    <form id="instrument-form" class="panel">
+      <label>
+        <span>Label</span>
+        <input id="label" type="text" placeholder="Instrument name" required />
+      </label>
+      <div class="grid">
+        <label>
+          <span>ISIN</span>
+          <input id="isin" type="text" placeholder="IE00..." />
+        </label>
+        <label>
+          <span>Code</span>
+          <input id="code" type="text" placeholder="Ticker" />
+        </label>
+      </div>
+      <div class="grid">
+        <label>
+          <span>Asset class</span>
+          <input id="assetClass" type="text" placeholder="equity_global" />
+        </label>
+        <label>
+          <span>Sim model</span>
+          <select id="simModel">
+            <option value="risky">risky</option>
+            <option value="rate">rate</option>
+          </select>
+        </label>
+      </div>
+      <div class="grid">
+        <label>
+          <span>TER</span>
+          <input id="ter" type="number" step="0.0001" min="0" value="0" />
+        </label>
+      </div>
+      <div class="grid">
+        <label>
+          <span>Mu (3Y)</span>
+          <input id="mu3" type="number" step="0.001" value="0" />
+        </label>
+        <label>
+          <span>Mu (10Y)</span>
+          <input id="mu10" type="number" step="0.001" value="0" />
+        </label>
+      </div>
+      <div class="grid">
+        <label>
+          <span>Sigma (3Y)</span>
+          <input id="sigma3" type="number" step="0.001" value="0" />
+        </label>
+        <label>
+          <span>Sigma (10Y)</span>
+          <input id="sigma10" type="number" step="0.001" value="0" />
+        </label>
+      </div>
+      <button id="add" class="btn primary" type="submit">Add to Plausible</button>
+    </form>
+
+    <footer>
+      <p>Tip: keep a Plausible tab open and click Add.</p>
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
